@@ -1,0 +1,778 @@
+@model GerenciamentoPage
+@using C4Two.Services
+@{
+    ViewData["Title"] = "Gerenciamento";
+    var fieldClass = "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-base text-gray-700 shadow-sm focus:border-[#06793A] focus:outline-none focus:ring-2 focus:ring-[#06793A]";
+    var tiposEstabelecimento = new[] { "Restaurante", "Pizzaria", "Bar" };
+    var categoriasConsumo = new[] { "Bebida", "Drink", "Porção" };
+    var tiposMesa = new[] { "externa", "interna", "casal", "mesaVIP" };
+    var estabelecimentos = Model.Cadastros.CadastroEstabelecimento;
+    var itensConsumo = Model.Cadastros.CadastroItensConsumo;
+    var mesas = Model.Cadastros.CadastroMesa;
+
+    string NomeEstabelecimento(int id)
+    {
+        var estabelecimento = estabelecimentos.FirstOrDefault(item => item.Id == id);
+        return estabelecimento == null ? "Sem estabelecimento" : estabelecimento.Nome;
+    }
+
+    string Icone(params string[] valores)
+    {
+        foreach (var valor in valores)
+        {
+            var chave = (valor ?? string.Empty).Trim().ToLowerInvariant();
+            chave = chave.Replace("ç", "c").Replace("ã", "a").Replace("á", "a").Replace("é", "e").Replace("í", "i").Replace(" ", string.Empty);
+            var arquivo = chave switch
+            {
+                "bebida" => "bebida.svg",
+                "drink" => "drink.svg",
+                "porcao" => "porcao.svg",
+                "restaurante" => "restaurante.svg",
+                "pizzaria" => "pizzaria.svg",
+                "bar" => "bar.svg",
+                "externa" => "mesa-externa.svg",
+                "interna" => "mesa-interna.svg",
+                "casal" => "mesa-casal.svg",
+                "mesavip" => "mesa-vip.svg",
+                _ => string.Empty
+            };
+
+            if (arquivo.Length > 0)
+            {
+                return Url.Content("~/img/icones/" + arquivo);
+            }
+        }
+
+        return Url.Content("~/img/icones/item.svg");
+    }
+}
+
+<section class="space-y-10 py-10">
+    <div class="space-y-6">
+        <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 md:text-6xl">
+            Gerenciamento
+        </h1>
+        <p class="max-w-2xl text-lg text-gray-600">
+            Área de gerenciamento de itens, mesas e pagamentos.
+        </p>
+        <div style="display:inline-grid;gap:1rem">
+            <button type="button" id="abrir-monitoramento" class="rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]" style="display:flex;align-items:center;gap:1rem;width:100%;min-height:2.5rem" title="monitoramento de pedidos" aria-label="monitoramento de pedidos">
+                <img src="~/img/icones/monitoramento-pedidos.svg" alt="" width="40" height="40" class="rounded-full" style="width:2.5rem;height:2.5rem" />
+                monitoramento de pedidos
+            </button>
+            <button type="button" id="abrir-validar-pagamentos" class="rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]" style="display:flex;align-items:center;gap:1rem;width:100%;min-height:2.5rem" title="validar pagamentos" aria-label="validar pagamentos">
+                <img src="~/img/icones/validar-pagamentos.svg" alt="" width="40" height="40" class="rounded-full" style="width:2.5rem;height:2.5rem" />
+                validar pagamentos
+            </button>
+            <button type="button" id="abrir-validar-saida" class="rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]" style="display:flex;align-items:center;gap:1rem;width:100%;min-height:2.5rem" title="validar codigo saída cliente" aria-label="validar codigo saída cliente">
+                <img src="~/img/icones/validar-codigo-saida.svg" alt="" width="40" height="40" class="rounded-full" style="width:2.5rem;height:2.5rem" />
+                validar codigo saída cliente
+            </button>
+            <button type="button" id="abrir-status-mesas" class="rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]" style="display:flex;align-items:center;gap:1rem;width:100%;min-height:2.5rem" title="atualizar status mesas" aria-label="atualizar status mesas">
+                <img src="~/img/icones/atualizar-status-mesas.svg" alt="" width="40" height="40" class="rounded-full" style="width:2.5rem;height:2.5rem" />
+                atualizar status mesas
+            </button>
+            <a id="botao-pedidos-cozinha" class="rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]" style="display:flex;align-items:center;gap:1rem;width:100%;min-height:2.5rem;text-decoration:none;color:#fff" title="pedidos cozinha" aria-label="pedidos cozinha" asp-controller="PedidosCozinha" asp-action="Index">
+                <img src="~/img/icones/pedidos-cozinha.svg" alt="" width="40" height="40" class="rounded-full" style="width:2.5rem;height:2.5rem" />
+                pedidos cozinha
+            </a>
+        </div>
+        @if (ViewData["Sucesso"] is string sucesso)
+        {
+            <p class="profile-saved">@sucesso</p>
+        }
+    </div>
+
+    <section id="cadastro-estabelecimento" class="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow">
+        <h2 class="text-2xl font-bold text-gray-900">Cadastro Estabelecimento</h2>
+        @if (Model.IndiceEstabelecimento >= 0)
+        {
+            <p class="text-sm font-semibold text-gray-900">Editando @Model.NovoEstabelecimento.Nome</p>
+        }
+        <form asp-action="Estabelecimento" method="post" class="space-y-5">
+            <div asp-validation-summary="ModelOnly"></div>
+            <input type="hidden" name="indiceEstabelecimento" value="@Model.IndiceEstabelecimento" />
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div class="space-y-2">
+                    <label asp-for="NovoEstabelecimento.Nome" class="block text-sm font-semibold"></label>
+                    <input asp-for="NovoEstabelecimento.Nome" class="@fieldClass" />
+                    <span asp-validation-for="NovoEstabelecimento.Nome"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="NovoEstabelecimento.Tipo" class="block text-sm font-semibold"></label>
+                    <select asp-for="NovoEstabelecimento.Tipo" class="@fieldClass">
+                        <option value="">Selecione</option>
+                        @foreach (var tipo in tiposEstabelecimento)
+                        {
+                            <option value="@tipo">@tipo</option>
+                        }
+                    </select>
+                    <span asp-validation-for="NovoEstabelecimento.Tipo"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="NovoEstabelecimento.Telefone" class="block text-sm font-semibold"></label>
+                    <input asp-for="NovoEstabelecimento.Telefone" class="@fieldClass" />
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="NovoEstabelecimento.Cidade" class="block text-sm font-semibold"></label>
+                    <input asp-for="NovoEstabelecimento.Cidade" class="@fieldClass" />
+                </div>
+                <div class="space-y-2 md:col-span-2">
+                    <label asp-for="NovoEstabelecimento.Endereco" class="block text-sm font-semibold"></label>
+                    <input asp-for="NovoEstabelecimento.Endereco" class="@fieldClass" />
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-4">
+                <button type="submit" class="rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]">
+                    @(Model.IndiceEstabelecimento >= 0 ? "Salvar alterações" : "Salvar estabelecimento")
+                </button>
+                @if (Model.IndiceEstabelecimento >= 0)
+                {
+                    <a class="text-sm font-semibold text-gray-900" asp-action="Index" asp-fragment="cadastro-estabelecimento">Cancelar edição</a>
+                }
+            </div>
+        </form>
+        <div class="space-y-5 border-t border-gray-200 pt-5">
+            <h3 class="text-lg font-semibold text-gray-900">Itens cadastrados</h3>
+            @if (estabelecimentos.Count == 0)
+            {
+                <p class="text-sm text-gray-600">Nenhum estabelecimento cadastrado.</p>
+            }
+            else
+            {
+                <ul class="space-y-5">
+                    @for (var i = 0; i < estabelecimentos.Count; i++)
+                    {
+                        var item = estabelecimentos[i];
+                        <li class="flex items-center gap-4 rounded-xl border border-gray-200 px-4 py-3">
+                            <img src="@Icone(item.Tipo, item.Nome)" alt="@item.Tipo" width="64" height="64" class="rounded-full" style="width:4rem;height:4rem;flex-shrink:0" />
+                            <div style="flex:1">
+                                <p class="font-semibold text-gray-900">@item.Nome</p>
+                                <p class="text-sm text-gray-600">Id estabelecimento: @item.Id</p>
+                                <p class="text-sm text-gray-600">Tipo: @item.Tipo</p>
+                                <p class="text-sm text-gray-600">Telefone: @item.Telefone</p>
+                                <p class="text-sm text-gray-600">@item.Endereco · @item.Cidade</p>
+                            </div>
+                            <a asp-action="EditarEstabelecimento" asp-route-indice="@i" asp-fragment="cadastro-estabelecimento" title="Editar" aria-label="Editar @item.Nome" style="flex-shrink:0">
+                                <img src="~/img/icones/editar.svg" alt="" width="40" height="40" class="rounded-full" style="width:2.5rem;height:2.5rem" />
+                            </a>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </section>
+
+    <section id="cadastro-itens" class="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow">
+        <h2 class="text-2xl font-bold text-gray-900">Cadastro Itens de consumo</h2>
+        @if (Model.IndiceItemConsumo >= 0)
+        {
+            <p class="text-sm font-semibold text-gray-900">Editando @Model.NovoItemConsumo.Nome</p>
+        }
+        <form asp-action="ItensConsumo" method="post" class="space-y-5">
+            <div asp-validation-summary="ModelOnly"></div>
+            <input type="hidden" name="indiceItemConsumo" value="@Model.IndiceItemConsumo" />
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div class="space-y-2 md:col-span-2">
+                    <label asp-for="NovoItemConsumo.IdEstabelecimento" class="block text-sm font-semibold"></label>
+                    <select asp-for="NovoItemConsumo.IdEstabelecimento" class="@fieldClass">
+                        <option value="0">Selecione</option>
+                        @foreach (var estabelecimento in estabelecimentos)
+                        {
+                            <option value="@estabelecimento.Id">@estabelecimento.Nome</option>
+                        }
+                    </select>
+                    <span asp-validation-for="NovoItemConsumo.IdEstabelecimento"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="NovoItemConsumo.Nome" class="block text-sm font-semibold"></label>
+                    <input asp-for="NovoItemConsumo.Nome" class="@fieldClass" />
+                    <span asp-validation-for="NovoItemConsumo.Nome"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="NovoItemConsumo.Categoria" class="block text-sm font-semibold"></label>
+                    <select asp-for="NovoItemConsumo.Categoria" class="@fieldClass">
+                        <option value="">Selecione</option>
+                        @foreach (var categoria in categoriasConsumo)
+                        {
+                            <option value="@categoria">@categoria</option>
+                        }
+                    </select>
+                    <span asp-validation-for="NovoItemConsumo.Categoria"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="NovoItemConsumo.Preco" class="block text-sm font-semibold"></label>
+                    <input asp-for="NovoItemConsumo.Preco" class="@fieldClass" />
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="NovoItemConsumo.Descricao" class="block text-sm font-semibold"></label>
+                    <input asp-for="NovoItemConsumo.Descricao" class="@fieldClass" />
+                </div>
+                <div class="md:col-span-2">
+                    <label class="text-sm font-semibold" style="display:flex;align-items:center;gap:0.75rem">
+                        <input type="checkbox" name="NovoItemConsumo.PreparoCozinha" value="sim" @(string.Equals(Model.NovoItemConsumo.PreparoCozinha, "sim", StringComparison.OrdinalIgnoreCase) ? "checked" : null) />
+                        item de preparo na cozinha?
+                    </label>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-4">
+                <button type="submit" class="rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]">
+                    @(Model.IndiceItemConsumo >= 0 ? "Salvar alterações" : "Salvar itens de consumo")
+                </button>
+                @if (Model.IndiceItemConsumo >= 0)
+                {
+                    <a class="text-sm font-semibold text-gray-900" asp-action="Index" asp-fragment="cadastro-itens">Cancelar edição</a>
+                }
+            </div>
+        </form>
+        <div class="space-y-5 border-t border-gray-200 pt-5">
+            <h3 class="text-lg font-semibold text-gray-900">Itens cadastrados</h3>
+            @if (itensConsumo.Count == 0)
+            {
+                <p class="text-sm text-gray-600">Nenhum item de consumo cadastrado.</p>
+            }
+            else
+            {
+                <div class="relative flex flex-col rounded-lg bg-white shadow-sm border border-slate-200">
+                    <nav class="flex min-w-[240px] flex-col gap-1 p-1.5">
+                        @for (var i = 0; i < itensConsumo.Count; i++)
+                        {
+                            var item = itensConsumo[i];
+                            <div role="button" class="text-slate-800 flex w-full items-center rounded-md p-2 pl-3 transition-all hover:bg-[#FBF7EF] focus:bg-slate-100 active:bg-slate-100">
+                                <a class="min-w-0 flex-1" asp-action="EditarItensConsumo" asp-route-indice="@i" asp-fragment="cadastro-itens" title="Editar @item.Nome">
+                                    <span class="block">@item.Nome</span>
+                                    <span class="block text-sm text-slate-600">Id @item.Id · Id estabelecimento @item.IdEstabelecimento · @NomeEstabelecimento(item.IdEstabelecimento) · @item.Categoria · @item.Preco · preparo na cozinha @(string.Equals(item.PreparoCozinha, "sim", StringComparison.OrdinalIgnoreCase) ? "sim" : "não")</span>
+                                </a>
+                                <form asp-action="ExcluirItensConsumo" asp-route-indice="@i" method="post" class="ml-auto grid place-items-center justify-self-end">
+                                    <button class="rounded-md border border-transparent p-2.5 text-center text-sm transition-all text-slate-600 hover:bg-slate-200 focus:bg-slate-200 active:bg-slate-200 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="submit" title="Excluir" aria-label="Excluir @item.Nome">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+                                            <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    </nav>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section id="cadastro-mesas" class="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow">
+        <h2 class="text-2xl font-bold text-gray-900">Cadastro Mesa</h2>
+        @if (Model.IndiceMesa >= 0)
+        {
+            <p class="text-sm font-semibold text-gray-900">Editando @Model.NovaMesa.Nome</p>
+        }
+        <form asp-action="Mesa" method="post" class="space-y-5">
+            <div asp-validation-summary="ModelOnly"></div>
+            <input type="hidden" name="indiceMesa" value="@Model.IndiceMesa" />
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div class="space-y-2 md:col-span-2">
+                    <label asp-for="NovaMesa.IdEstabelecimento" class="block text-sm font-semibold"></label>
+                    <select asp-for="NovaMesa.IdEstabelecimento" class="@fieldClass">
+                        <option value="0">Selecione</option>
+                        @foreach (var estabelecimento in estabelecimentos)
+                        {
+                            <option value="@estabelecimento.Id">@estabelecimento.Nome</option>
+                        }
+                    </select>
+                    <span asp-validation-for="NovaMesa.IdEstabelecimento"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="NovaMesa.Nome" class="block text-sm font-semibold"></label>
+                    <input asp-for="NovaMesa.Nome" class="@fieldClass" />
+                    <span asp-validation-for="NovaMesa.Nome"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="NovaMesa.Tipo" class="block text-sm font-semibold"></label>
+                    <select asp-for="NovaMesa.Tipo" class="@fieldClass">
+                        <option value="">Selecione</option>
+                        @foreach (var tipo in tiposMesa)
+                        {
+                            <option value="@tipo">@tipo</option>
+                        }
+                    </select>
+                    <span asp-validation-for="NovaMesa.Tipo"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="NovaMesa.Capacidade" class="block text-sm font-semibold"></label>
+                    <input asp-for="NovaMesa.Capacidade" class="@fieldClass" />
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-4">
+                <button type="submit" class="rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]">
+                    @(Model.IndiceMesa >= 0 ? "Salvar alterações" : "Salvar mesas")
+                </button>
+                @if (Model.IndiceMesa >= 0)
+                {
+                    <a class="text-sm font-semibold text-gray-900" asp-action="Index" asp-fragment="cadastro-mesas">Cancelar edição</a>
+                }
+            </div>
+        </form>
+        <div class="space-y-5 border-t border-gray-200 pt-5">
+            <h3 class="text-lg font-semibold text-gray-900">Itens cadastrados</h3>
+            @if (mesas.Count == 0)
+            {
+                <p class="text-sm text-gray-600">Nenhuma mesa cadastrada.</p>
+            }
+            else
+            {
+                <div class="relative flex flex-col rounded-lg bg-white shadow-sm border border-slate-200">
+                    <nav class="flex min-w-[240px] flex-col gap-1 p-1.5">
+                        @for (var i = 0; i < mesas.Count; i++)
+                        {
+                            var item = mesas[i];
+                            <div role="button" class="text-slate-800 flex w-full items-center rounded-md p-2 pl-3 transition-all hover:bg-[#FBF7EF] focus:bg-slate-100 active:bg-slate-100">
+                                <a class="min-w-0 flex-1" asp-action="EditarMesa" asp-route-indice="@i" asp-fragment="cadastro-mesas" title="Editar @item.Nome">
+                                    <span class="block">@item.Nome</span>
+                                    <span class="block text-sm text-slate-600">Id @item.Id · Id estabelecimento @item.IdEstabelecimento · @NomeEstabelecimento(item.IdEstabelecimento) · @item.Tipo · Capacidade @item.Capacidade</span>
+                                </a>
+                                <img src="data:image/png;base64,@MesaQrCode.PngBase64(item)" alt="QR code de @item.Nome" width="64" height="64" style="width:4rem;height:4rem" />
+                                <form asp-action="ExcluirMesa" asp-route-indice="@i" method="post" class="ml-auto grid place-items-center justify-self-end">
+                                    <button class="rounded-md border border-transparent p-2.5 text-center text-sm transition-all text-slate-600 hover:bg-slate-200 focus:bg-slate-200 active:bg-slate-200 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="submit" title="Excluir" aria-label="Excluir @item.Nome">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+                                            <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    </nav>
+                </div>
+            }
+        </div>
+    </section>
+
+    @{
+        var pedidos = ViewData["Pedidos"] as List<PedidoMonitoramento> ?? new List<PedidoMonitoramento>();
+    }
+    <div id="monitoramento-pedidos" role="presentation" style="display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:1rem">
+        <div class="space-y-6 rounded-2xl bg-white px-6 py-5 shadow" role="dialog" aria-modal="true" aria-labelledby="monitoramento-pedidos-titulo" style="width:100%;max-width:42rem;max-height:80vh;overflow:auto">
+            <p id="monitoramento-pedidos-titulo" class="text-2xl font-extrabold tracking-tight text-gray-900">monitoramento de pedidos</p>
+            @if (pedidos.Count == 0)
+            {
+                <p class="text-gray-700">Não há pedidos nas mesas.</p>
+            }
+            else
+            {
+                <div class="relative flex flex-col rounded-lg bg-white shadow-sm border border-slate-200">
+                    <nav class="flex min-w-[240px] flex-col gap-1 p-1.5">
+                        @foreach (var pedido in pedidos)
+                        {
+                            <p class="text-sm font-semibold text-gray-900" style="padding:0.5rem 0.75rem 0">@pedido.Estabelecimento · @pedido.Mesa · @pedido.Cliente</p>
+                            @foreach (var item in pedido.Itens)
+                            {
+                                var entregue = string.Equals(item.StatusEntrega, "entregue", StringComparison.OrdinalIgnoreCase);
+                                <div class="text-slate-800 flex w-full items-center rounded-md p-2 pl-3 transition-all hover:bg-[#FBF7EF] focus:bg-slate-100 active:bg-slate-100">
+                                    <div class="min-w-0 flex-1">
+                                        <span class="block">@item.Nome</span>
+                                        <span class="block text-sm text-slate-600">@item.Preco · @item.DataHora.ToString("dd/MM/yyyy HH:mm") · <span class="status-entrega" data-id="@item.Id">@item.StatusEntrega</span></span>
+                                    </div>
+                                    <input class="entrega-item" type="checkbox" data-id="@item.Id" title="Marcar como entregue" aria-label="Marcar @item.Nome como entregue" style="width:1.25rem;height:1.25rem;accent-color:#06793A" @(entregue ? "checked" : null) />
+                                </div>
+                            }
+                            <span class="block text-sm font-semibold text-gray-900" style="padding:0 0.75rem 0.5rem">Total: @pedido.Total</span>
+                        }
+                    </nav>
+                </div>
+            }
+            <button type="button" id="fechar-monitoramento" class="rounded-2xl border-2 border-[#06793A] bg-white px-8 py-4 text-lg font-semibold text-[#06793A] shadow">Fechar</button>
+        </div>
+    </div>
+
+    @{
+        var validacoes = ViewData["Validacoes"] as List<ValidacaoPagamentoLinha> ?? new List<ValidacaoPagamentoLinha>();
+        var statusPagamento = ValidacaoPagamentoStore.StatusPermitidos;
+        var porMesa = validacoes.GroupBy(linha => linha.Mesa);
+    }
+    <div id="validar-pagamentos" role="presentation" style="display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:1rem">
+        <div class="space-y-6 rounded-2xl bg-white px-6 py-5 shadow" role="dialog" aria-modal="true" aria-labelledby="validar-pagamentos-titulo" style="width:100%;max-width:42rem;max-height:80vh;overflow:auto">
+            <p id="validar-pagamentos-titulo" class="text-2xl font-extrabold tracking-tight text-gray-900">validar pagamentos</p>
+            @if (!validacoes.Any())
+            {
+                <p class="text-gray-700">Não há pagamentos para validar.</p>
+            }
+            else
+            {
+                <div class="relative flex flex-col rounded-lg bg-white shadow-sm border border-slate-200">
+                    <nav class="flex min-w-[240px] flex-col gap-1 p-1.5">
+                        @foreach (var mesa in porMesa)
+                        {
+                            <p class="text-sm font-semibold text-gray-900" style="padding:0.5rem 0.75rem 0">@mesa.Key</p>
+                            @foreach (var cliente in mesa)
+                            {
+                                <div class="text-slate-800 flex w-full items-center rounded-md p-2 pl-3" style="gap:0.75rem">
+                                    <div class="min-w-0 flex-1">
+                                        <span class="block">@cliente.Cliente</span>
+                                        @if (!string.IsNullOrWhiteSpace(cliente.FormaDePagamento))
+                                        {
+                                            <span class="block text-sm text-slate-600">@cliente.FormaDePagamento</span>
+                                        }
+                                        @if (cliente.ItensEntregues.Count == 0)
+                                        {
+                                            <span class="block text-sm text-slate-600">Nenhum item entregue</span>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var item in cliente.ItensEntregues)
+                                            {
+                                                <span class="block text-sm text-slate-600">@item · entregue</span>
+                                            }
+                                        }
+                                    </div>
+                                    <select class="status-pagamento rounded-xl border border-gray-300 bg-white px-4 py-3 text-base text-gray-700 shadow-sm" data-token="@cliente.TokenPago" aria-label="Status de pagamento de @cliente.Cliente" style="max-width:16rem">
+                                        @if (!statusPagamento.Contains(cliente.StatusPagamento))
+                                        {
+                                            <option value="@cliente.StatusPagamento" selected>@(string.IsNullOrWhiteSpace(cliente.StatusPagamento) ? "Selecione" : cliente.StatusPagamento)</option>
+                                        }
+                                        @foreach (var opcao in statusPagamento)
+                                        {
+                                            if (opcao == cliente.StatusPagamento)
+                                            {
+                                                <option value="@opcao" selected>@opcao</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@opcao">@opcao</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            }
+                        }
+                    </nav>
+                </div>
+            }
+            <button type="button" id="fechar-validar-pagamentos" class="rounded-2xl border-2 border-[#06793A] bg-white px-8 py-4 text-lg font-semibold text-[#06793A] shadow">Fechar</button>
+        </div>
+    </div>
+
+    @{
+        var codigosSaida = ViewData["CodigosLiberados"] as List<CodigoLiberacaoLinha> ?? new List<CodigoLiberacaoLinha>();
+        var porCliente = codigosSaida.GroupBy(linha => linha.Cliente);
+        string Quando(string valor) => DateTimeOffset.TryParse(valor, out var data) ? data.ToString("dd/MM/yyyy HH:mm") : valor;
+    }
+    <div id="validar-saida" role="presentation" style="display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:1rem">
+        <div class="space-y-6 rounded-2xl bg-white px-6 py-5 shadow" role="dialog" aria-modal="true" aria-labelledby="validar-saida-titulo" style="width:100%;max-width:42rem;max-height:80vh;overflow:auto">
+            <p id="validar-saida-titulo" class="text-2xl font-extrabold tracking-tight text-gray-900">validar codigo saída cliente</p>
+            @if (!codigosSaida.Any())
+            {
+                <p class="text-gray-700">Não há códigos de saída.</p>
+            }
+            else
+            {
+                <div class="relative flex flex-col rounded-lg bg-white shadow-sm border border-slate-200">
+                    <nav class="flex min-w-[240px] flex-col gap-1 p-1.5">
+                        @foreach (var grupo in porCliente)
+                        {
+                            <p class="text-sm font-semibold text-gray-900" style="padding:0.5rem 0.75rem 0">@grupo.Key</p>
+                            @foreach (var cliente in grupo)
+                            {
+                                <div class="text-slate-800 flex w-full items-center rounded-md p-2 pl-3 transition-all hover:bg-[#FBF7EF]" style="gap:0.75rem">
+                                    <div class="min-w-0 flex-1">
+                                        <span class="block">@cliente.Cliente</span>
+                                        <span class="block text-sm text-slate-600">@cliente.Mesa · @cliente.Codigo · @cliente.FormaDePagamento</span>
+                                        @if (!string.IsNullOrWhiteSpace(cliente.Itens))
+                                        {
+                                            <span class="block text-sm text-slate-600">@cliente.Itens</span>
+                                        }
+                                        <span class="block text-sm text-slate-600">passou no checklist de saída ?</span>
+                                        <span class="checklist-saida-quando block text-sm text-slate-600" data-codigo="@cliente.Codigo">@Quando(cliente.ChecklistDataHora)</span>
+                                    </div>
+                                    <input class="checklist-saida" type="checkbox" data-codigo="@cliente.Codigo" title="passou no checklist de saída ?" aria-label="passou no checklist de saída ? @cliente.Cliente" style="width:1.25rem;height:1.25rem;accent-color:#06793A" @(cliente.ChecklistOk ? "checked" : null) @(cliente.CodigoValido ? null : "disabled") />
+                                </div>
+                            }
+                        }
+                    </nav>
+                </div>
+            }
+            <button type="button" id="fechar-validar-saida" class="rounded-2xl border-2 border-[#06793A] bg-white px-8 py-4 text-lg font-semibold text-[#06793A] shadow">Fechar</button>
+        </div>
+    </div>
+
+    <div id="status-mesas" role="presentation" style="display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:1rem">
+        <div class="space-y-6 rounded-2xl bg-white px-6 py-5 shadow" role="dialog" aria-modal="true" aria-labelledby="status-mesas-titulo" style="width:100%;max-width:42rem;max-height:80vh;overflow:auto">
+            <p id="status-mesas-titulo" class="text-2xl font-extrabold tracking-tight text-gray-900">atualizar status mesas</p>
+            <label class="block text-sm font-semibold text-gray-900" for="filtro-estabelecimento">Estabelecimento</label>
+            <select id="filtro-estabelecimento" class="rounded-xl border border-gray-300 bg-white px-4 py-3 text-base text-gray-700 shadow-sm" style="max-width:20rem"></select>
+            <div id="lista-status-mesas"></div>
+            <button type="button" id="fechar-status-mesas" class="rounded-2xl border-2 border-[#06793A] bg-white px-8 py-4 text-lg font-semibold text-[#06793A] shadow">Fechar</button>
+        </div>
+    </div>
+
+    <a class="inline-block rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]" asp-controller="Main" asp-action="Index">
+        Voltar
+    </a>
+</section>
+
+<script>
+    (function () {
+        var botao = document.getElementById("abrir-monitoramento");
+        var painel = document.getElementById("monitoramento-pedidos");
+        if (!botao || !painel) {
+            return;
+        }
+
+        botao.addEventListener("click", function () {
+            painel.style.display = "flex";
+        });
+        document.getElementById("fechar-monitoramento").addEventListener("click", function () {
+            painel.style.display = "none";
+        });
+        painel.addEventListener("click", function (evento) {
+            if (evento.target === painel) {
+                painel.style.display = "none";
+            }
+        });
+
+        var token = document.querySelector("input[name='__RequestVerificationToken']");
+        document.querySelectorAll(".entrega-item").forEach(function (campo) {
+            campo.addEventListener("change", function () {
+                var id = campo.getAttribute("data-id");
+                var marcado = campo.checked;
+                var status = document.querySelector('.status-entrega[data-id="' + id + '"]');
+                fetch("/gerenciamento/entrega-consumo/" + id, {
+                    method: "POST",
+                    headers: {
+                        "RequestVerificationToken": token ? token.value : "",
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: "entregue=" + (marcado ? "true" : "false")
+                }).then(function (resposta) {
+                    if (!resposta.ok) {
+                        throw new Error("falha");
+                    }
+                    return resposta.json();
+                }).then(function (dados) {
+                    if (!dados || !dados.ok) {
+                        campo.checked = !marcado;
+                        return;
+                    }
+                    if (status) {
+                        status.textContent = dados.statusEntrega;
+                    }
+                }).catch(function () {
+                    campo.checked = !marcado;
+                });
+            });
+        });
+    })();
+
+    (function () {
+        var botao = document.getElementById("abrir-validar-pagamentos");
+        var painel = document.getElementById("validar-pagamentos");
+        if (!botao || !painel) {
+            return;
+        }
+
+        botao.addEventListener("click", function () {
+            painel.style.display = "flex";
+        });
+        document.getElementById("fechar-validar-pagamentos").addEventListener("click", function () {
+            painel.style.display = "none";
+        });
+        painel.addEventListener("click", function (evento) {
+            if (evento.target === painel) {
+                painel.style.display = "none";
+            }
+        });
+
+        var token = document.querySelector("input[name='__RequestVerificationToken']");
+        document.querySelectorAll(".status-pagamento").forEach(function (campo) {
+            campo.addEventListener("change", function () {
+                var anterior = campo.getAttribute("data-anterior");
+                if (anterior === null) {
+                    anterior = "";
+                }
+                var escolhido = campo.value;
+                if (!escolhido || escolhido === anterior) {
+                    return;
+                }
+
+                fetch("/gerenciamento/status-pagamento", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "RequestVerificationToken": token ? token.value : "",
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: "tokenPago=" + encodeURIComponent(campo.getAttribute("data-token") || "") + "&statusPagamento=" + encodeURIComponent(escolhido)
+                }).then(function (resposta) {
+                    if (!resposta.ok) {
+                        throw new Error("falha");
+                    }
+                    return resposta.json();
+                }).then(function (dados) {
+                    if (!dados || !dados.ok) {
+                        campo.value = anterior;
+                        return;
+                    }
+                    campo.setAttribute("data-anterior", escolhido);
+                    if (dados.tokenPago) {
+                        campo.setAttribute("data-token", dados.tokenPago);
+                    }
+                }).catch(function () {
+                    campo.value = anterior;
+                });
+            });
+            campo.setAttribute("data-anterior", campo.value);
+        });
+    })();
+
+    (function () {
+        var botao = document.getElementById("abrir-validar-saida");
+        var painel = document.getElementById("validar-saida");
+        if (!botao || !painel) {
+            return;
+        }
+
+        botao.addEventListener("click", function () {
+            painel.style.display = "flex";
+        });
+        document.getElementById("fechar-validar-saida").addEventListener("click", function () {
+            painel.style.display = "none";
+        });
+        painel.addEventListener("click", function (evento) {
+            if (evento.target === painel) {
+                painel.style.display = "none";
+            }
+        });
+
+        var token = document.querySelector("input[name='__RequestVerificationToken']");
+        document.querySelectorAll(".checklist-saida").forEach(function (campo) {
+            campo.addEventListener("change", function () {
+                if (campo.disabled) {
+                    campo.checked = false;
+                    return;
+                }
+                var marcado = campo.checked;
+                var codigo = campo.getAttribute("data-codigo") || "";
+                var quando = document.querySelector('.checklist-saida-quando[data-codigo="' + codigo + '"]');
+                fetch("/gerenciamento/checklist-saida", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "RequestVerificationToken": token ? token.value : "",
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: "codigo=" + encodeURIComponent(codigo) + "&marcado=" + (marcado ? "true" : "false")
+                }).then(function (resposta) {
+                    if (!resposta.ok) {
+                        throw new Error("falha");
+                    }
+                    return resposta.json();
+                }).then(function (dados) {
+                    if (!dados || !dados.ok) {
+                        campo.checked = !marcado;
+                        return;
+                    }
+                    if (quando && dados.dataHora) {
+                        var data = new Date(dados.dataHora);
+                        quando.textContent = isNaN(data.getTime()) ? dados.dataHora : data.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+                    }
+                }).catch(function () {
+                    campo.checked = !marcado;
+                });
+            });
+        });
+    })();
+
+    (function () {
+        var botao = document.getElementById("abrir-status-mesas");
+        var painel = document.getElementById("status-mesas");
+        var filtro = document.getElementById("filtro-estabelecimento");
+        var lista = document.getElementById("lista-status-mesas");
+        if (!botao || !painel || !filtro || !lista) {
+            return;
+        }
+
+        var mesas = [];
+        botao.addEventListener("click", function () {
+            var token = document.querySelector("input[name='__RequestVerificationToken']");
+            botao.disabled = true;
+            fetch("/gerenciamento/atualizar-status-mesas", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "RequestVerificationToken": token ? token.value : ""
+                }
+            }).then(function (resposta) {
+                if (!resposta.ok) {
+                    throw new Error("falha");
+                }
+                return resposta.json();
+            }).then(function (dados) {
+                botao.disabled = false;
+                if (!dados || !dados.ok) {
+                    return;
+                }
+                mesas = dados.mesas || [];
+                var estabelecimentos = dados.estabelecimentos || [];
+                filtro.innerHTML = "";
+                var todos = document.createElement("option");
+                todos.value = "";
+                todos.textContent = "Todos os estabelecimentos";
+                filtro.appendChild(todos);
+                estabelecimentos.forEach(function (item) {
+                    var opcao = document.createElement("option");
+                    opcao.value = String(item.id);
+                    opcao.textContent = item.nome;
+                    filtro.appendChild(opcao);
+                });
+                desenhar("");
+                painel.style.display = "flex";
+            }).catch(function () {
+                botao.disabled = false;
+            });
+        });
+
+        filtro.addEventListener("change", function () {
+            desenhar(filtro.value);
+        });
+        document.getElementById("fechar-status-mesas").addEventListener("click", function () {
+            painel.style.display = "none";
+        });
+        painel.addEventListener("click", function (evento) {
+            if (evento.target === painel) {
+                painel.style.display = "none";
+            }
+        });
+
+        function desenhar(estabelecimento) {
+            var visiveis = mesas.filter(function (mesa) {
+                return !estabelecimento || String(mesa.idEstabelecimento) === estabelecimento;
+            });
+            lista.innerHTML = "";
+            if (!visiveis.length) {
+                var vazio = document.createElement("p");
+                vazio.className = "text-gray-700";
+                vazio.textContent = "Nenhuma mesa cadastrada.";
+                lista.appendChild(vazio);
+                return;
+            }
+            var caixa = document.createElement("div");
+            caixa.className = "relative flex flex-col rounded-lg bg-white shadow-sm border border-slate-200";
+            var nav = document.createElement("nav");
+            nav.className = "flex min-w-[240px] flex-col gap-1 p-1.5";
+            visiveis.forEach(function (mesa) {
+                var linha = document.createElement("div");
+                linha.className = "text-slate-800 flex w-full items-center rounded-md p-2 pl-3 transition-all hover:bg-[#FBF7EF]";
+                var texto = document.createElement("div");
+                texto.className = "min-w-0 flex-1";
+                var nome = document.createElement("span");
+                nome.className = "block";
+                nome.textContent = mesa.nome;
+                var detalhe = document.createElement("span");
+                detalhe.className = "block text-sm text-slate-600";
+                detalhe.textContent = mesa.estabelecimento + " · " + mesa.tipo + " · " + mesa.status + (mesa.atualizada ? " · atualizada" : "");
+                texto.appendChild(nome);
+                texto.appendChild(detalhe);
+                linha.appendChild(texto);
+                nav.appendChild(linha);
+            });
+            caixa.appendChild(nav);
+            lista.appendChild(caixa);
+        }
+    })();
+</script>

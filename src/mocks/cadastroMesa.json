@@ -1,0 +1,49 @@
+{
+  "cadastroMesa": [
+    {
+      "id": 1,
+      "idEstabelecimento": 1,
+      "nome": "Mesa1",
+      "tipo": "externa",
+      "capacidade": "4",
+      "status": "disponivel",
+      "qrCode": "09b7a800f7c44c7ab0a2812733f55ccb"
+    },
+    {
+      "id": 2,
+      "idEstabelecimento": 1,
+      "nome": "Mesa2",
+      "tipo": "interna",
+      "capacidade": "4",
+      "status": "disponivel",
+      "qrCode": "54ce16bc6090483180c1642b5d18f589"
+    },
+    {
+      "id": 3,
+      "idEstabelecimento": 1,
+      "nome": "Mesa3",
+      "tipo": "casal",
+      "capacidade": "2",
+      "status": "disponivel",
+      "qrCode": "2a5f7482f7014c30a2ca4cbae56f058e"
+    },
+    {
+      "id": 4,
+      "idEstabelecimento": 1,
+      "nome": "MesaVIP",
+      "tipo": "mesaVIP",
+      "capacidade": "",
+      "status": "disponivel",
+      "qrCode": "cf4cb3cfbf1947ef9bec24ef4c8717e3"
+    },
+    {
+      "id": 5,
+      "idEstabelecimento": 1,
+      "nome": "Mesa6",
+      "tipo": "interna",
+      "capacidade": "6",
+      "status": "reservada",
+      "qrCode": "b8147773a70943f787c7b92adb8709bb"
+    }
+  ]
+}

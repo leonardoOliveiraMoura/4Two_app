@@ -1,0 +1,43 @@
+@model VisualizarConta
+@{
+    ViewData["Title"] = "Sua conta";
+}
+
+<section class="space-y-6 py-10">
+    <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 md:text-6xl">Sua conta</h1>
+    <p class="text-lg text-gray-600">@Model.Cliente · atualizada em tempo real</p>
+    <ol aria-label="Etapas da conta" style="display:flex;align-items:center;gap:0.75rem;width:100%;max-width:42rem;list-style:none;margin:0;padding:0.75rem 0">
+        @for (var passo = 1; passo <= 6; passo++)
+        {
+            var preenchido = passo <= 4;
+            <li aria-label="Etapa @passo de 6, @(preenchido ? "concluída" : "pendente")" style="flex:1 1 0;min-width:0">
+                <span style="display:block;height:4px;border-radius:999px;background:@(preenchido ? "#06793A" : "#e5e7eb")"></span>
+            </li>
+        }
+    </ol>
+    <p class="text-2xl font-extrabold tracking-tight text-gray-900">@Model.Mesa</p>
+    <div class="max-w-2xl space-y-2">
+        <p class="text-lg font-semibold text-gray-900">Transparência total</p>
+        <p class="text-lg font-semibold text-gray-900">Só o que é seu.</p>
+        <p class="text-gray-700">Itens compartilhados só entram na sua conta depois do seu aceite.</p>
+    </div>
+    <div class="max-w-2xl space-y-2">
+        @if (Model.Itens.Count == 0)
+        {
+            <p class="text-gray-700">Nenhum item na sua conta.</p>
+        }
+        else
+        {
+            @foreach (var item in Model.Itens)
+            {
+                <p class="text-lg text-gray-900">@item.Nome · @item.Preco · @item.DataHora.ToString("dd/MM/yyyy HH:mm") · @item.StatusEntrega</p>
+            }
+        }
+    </div>
+    <div>
+        <p class="text-lg font-semibold text-gray-900">Total</p>
+        <p class="text-2xl font-extrabold tracking-tight text-gray-900">R$ @Model.Total</p>
+    </div>
+    <p class="max-w-2xl text-gray-600">Taxa de serviço apresentada conforme configuração do estabelecimento. Em operação real, regras de cobrança e opção do cliente devem respeitar a legislação aplicável.</p>
+    <a class="inline-block rounded-2xl px-8 py-4 text-lg font-semibold text-white shadow-lg" style="background:#ff854a" asp-controller="FormaDePagamento" asp-action="Index">Fechar e pagar minha conta</a>
+</section>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Cesta">
+  <rect width="128" height="128" rx="64" fill="#06793A"/>
+  <path fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" d="M48 56c2-16 30-16 32 0"/>
+  <path fill="#fff" d="M38 60h52l-7 32H45z"/>
+  <path fill="#06793A" d="M43 72h42l-1.4 6H44.4z"/>
+</svg>

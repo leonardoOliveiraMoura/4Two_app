@@ -1,0 +1,71 @@
+@model List<MesaConsumoItem>
+@{
+    ViewData["Title"] = "pedidos cozinha";
+    var pedidos = Model ?? new List<MesaConsumoItem>();
+    var naoIniciados = pedidos.Where(item =>
+        string.IsNullOrWhiteSpace(item.Item.StatusPedidoCozinha)
+        || string.Equals(item.Item.StatusPedidoCozinha, "Não Iniciado", StringComparison.OrdinalIgnoreCase)).ToList();
+    var emPreparo = pedidos.Where(item =>
+        string.Equals(item.Item.StatusPedidoCozinha, "Iniciado em preparo", StringComparison.OrdinalIgnoreCase)).ToList();
+    var aguardando = pedidos.Where(item =>
+        string.Equals(item.Item.StatusPedidoCozinha, "Preparado aguardando entrega", StringComparison.OrdinalIgnoreCase)).ToList();
+}
+
+<section class="space-y-6 py-10">
+    <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 md:text-6xl">pedidos cozinha</h1>
+    <div class="space-y-5">
+        <h2 class="text-lg font-semibold text-gray-900">Não iniciado</h2>
+        @if (naoIniciados.Count == 0)
+        {
+            <p class="text-sm text-gray-600">Nenhum pedido de cozinha não iniciado.</p>
+        }
+        else
+        {
+            <div class="relative flex flex-col rounded-lg bg-white shadow-sm border border-slate-200">
+                <nav class="flex min-w-[240px] flex-col gap-1 p-1.5">
+                    @foreach (var pedido in naoIniciados)
+                    {
+                        <partial name="_LinhaPedido" model="pedido" />
+                    }
+                </nav>
+            </div>
+        }
+    </div>
+    <div class="space-y-5">
+        <h2 class="text-lg font-semibold text-gray-900">Iniciado em preparo</h2>
+        @if (emPreparo.Count == 0)
+        {
+            <p class="text-sm text-gray-600">Nenhum pedido iniciado em preparo.</p>
+        }
+        else
+        {
+            <div class="relative flex flex-col rounded-lg bg-white shadow-sm border border-slate-200">
+                <nav class="flex min-w-[240px] flex-col gap-1 p-1.5">
+                    @foreach (var pedido in emPreparo)
+                    {
+                        <partial name="_LinhaPedido" model="pedido" />
+                    }
+                </nav>
+            </div>
+        }
+    </div>
+    <div class="space-y-5">
+        <h2 class="text-lg font-semibold text-gray-900">Preparado aguardando entrega</h2>
+        @if (aguardando.Count == 0)
+        {
+            <p class="text-sm text-gray-600">Nenhum pedido preparado aguardando entrega.</p>
+        }
+        else
+        {
+            <div class="relative flex flex-col rounded-lg bg-white shadow-sm border border-slate-200">
+                <nav class="flex min-w-[240px] flex-col gap-1 p-1.5">
+                    @foreach (var pedido in aguardando)
+                    {
+                        <partial name="_LinhaPedido" model="pedido" />
+                    }
+                </nav>
+            </div>
+        }
+    </div>
+    <a class="inline-block rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]" asp-controller="Gerenciamento" asp-action="Index">Voltar</a>
+</section>

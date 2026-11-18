@@ -1,0 +1,44 @@
+[
+  {
+    "login": "cliente",
+    "senha": "cliente123",
+    "id": "1",
+    "cpf": "1234567890",
+    "nome": "Nome do ciente",
+    "email": "email@email.com",
+    "telefone": "1234567890",
+    "endereco": "Endereço do ciente",
+    "cidade": "Cidade do ciente",
+    "estado": "Estado do ciente",
+    "cep": "1234567891",
+    "pais": "País do ciente"
+  },
+  {
+    "login": "cliente2",
+    "senha": "cliente244",
+    "id": "2",
+    "cpf": "242444434234",
+    "nome": "Nome do cliente 2",
+    "email": "cliente2@cliente2.com.br",
+    "telefone": "113424234433",
+    "endereco": "Endereço do cliente 2",
+    "cidade": "Cidade do cliente 2",
+    "estado": "Estado do cliente 2",
+    "cep": "1234567891",
+    "pais": "País do cliente 2"
+  },
+  {
+    "login": "cliente3",
+    "senha": "cliente3",
+    "id": "2",
+    "cpf": "232311342345112",
+    "nome": "Cliente3",
+    "email": "cliente3@email.com",
+    "telefone": "12122323423",
+    "endereco": "Rua tal 123",
+    "cidade": "São Paulo",
+    "estado": "SP",
+    "cep": "23424556",
+    "pais": "Brasil"
+  }
+]

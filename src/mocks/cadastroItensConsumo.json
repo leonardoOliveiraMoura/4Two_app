@@ -1,0 +1,40 @@
+{
+  "cadastroItensConsumo": [
+    {
+      "id": 1,
+      "idEstabelecimento": 1,
+      "nome": "Bebida",
+      "categoria": "Bebida",
+      "descricao": "Refrigerantes, sucos e água",
+      "preco": "8,00",
+      "preparoCozinha": "não"
+    },
+    {
+      "id": 2,
+      "idEstabelecimento": 1,
+      "nome": "Drink",
+      "categoria": "Drink",
+      "descricao": "Drinks da casa",
+      "preco": "22,00",
+      "preparoCozinha": "não"
+    },
+    {
+      "id": 3,
+      "idEstabelecimento": 1,
+      "nome": "Porção",
+      "categoria": "Porção",
+      "descricao": "Porções para compartilhar",
+      "preco": "35,00",
+      "preparoCozinha": "sim"
+    },
+    {
+      "id": 4,
+      "idEstabelecimento": 1,
+      "nome": "Porção Fritas",
+      "categoria": "Porção",
+      "descricao": "Batata frita 500 g",
+      "preco": "25,00",
+      "preparoCozinha": "sim"
+    }
+  ]
+}

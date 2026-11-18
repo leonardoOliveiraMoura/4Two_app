@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Abrir sessao">
+  <rect width="128" height="128" rx="64" fill="#06793A"/>
+  <path fill="#fff" d="M28 26h36v76H28z"/>
+  <circle cx="40" cy="66" r="4" fill="#06793A"/>
+  <path fill="#F6C453" d="M74 52h18V38l22 26-22 26V76H74z"/>
+</svg>

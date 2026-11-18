@@ -1,0 +1,135 @@
+@model FormaDePagamentoPagina
+@{
+    ViewData["Title"] = "Escolha com o pagar.";
+}
+
+<section class="space-y-6 py-10">
+    <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 md:text-6xl">Escolha com o pagar.</h1>
+    <p>Você paga apenas sua parte. A mesa continua aberta para quem ainda estiver consumindo.</p>
+    <p class="text-lg font-semibold text-gray-900">Nome do cliente</p>
+    <p class="text-2xl font-extrabold tracking-tight text-gray-900">@Model.Cliente</p>
+    <p class="text-lg text-gray-600">@Model.Cliente · atualizada em tempo real</p>
+    <ol aria-label="Etapas da conta" style="display:flex;align-items:center;gap:0.75rem;width:100%;max-width:42rem;list-style:none;margin:0;padding:0.75rem 0">
+        <li aria-label="Etapa 1 de 6, concluída" style="flex:1 1 0;min-width:0">
+            <span style="display:block;height:4px;border-radius:999px;background:#06793A"></span>
+        </li>
+        <li aria-label="Etapa 2 de 6, concluída" style="flex:1 1 0;min-width:0">
+            <span style="display:block;height:4px;border-radius:999px;background:#06793A"></span>
+        </li>
+        <li aria-label="Etapa 3 de 6, concluída" style="flex:1 1 0;min-width:0">
+            <span style="display:block;height:4px;border-radius:999px;background:#06793A"></span>
+        </li>
+        <li aria-label="Etapa 4 de 6, concluída" style="flex:1 1 0;min-width:0">
+            <span style="display:block;height:4px;border-radius:999px;background:#06793A"></span>
+        </li>
+        <li aria-label="Etapa 5 de 6, concluída" style="flex:1 1 0;min-width:0">
+            <span style="display:block;height:4px;border-radius:999px;background:#06793A"></span>
+        </li>
+        <li aria-label="Etapa 6 de 6, pendente" style="flex:1 1 0;min-width:0">
+            <span style="display:block;height:4px;border-radius:999px;background:#e5e7eb"></span>
+        </li>
+    </ol>
+
+    <div>
+        <p class="text-lg font-semibold text-gray-900">PIX copia e cola · R$ @Model.Valor</p>
+        @if (!string.IsNullOrWhiteSpace(Model.QrCode))
+        {
+            <img src="data:image/png;base64,@Model.QrCode" alt="QR code do PIX copia e cola de R$ @Model.Valor" width="160" height="160" style="width:10rem;height:10rem" />
+        }
+        <p class="text-gray-700" style="max-width:42rem;word-break:break-all">@Model.CopiaCola</p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1rem;max-width:42rem">
+        <button type="button" class="forma-pagamento flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-6 text-left shadow" data-forma="PIX QR dinâmico ou copia e cola">
+            <img src="~/img/icones/pix.svg" alt="" width="64" height="64" style="width:4rem;height:4rem" />
+            <span class="text-lg font-semibold text-gray-900">PIX QR dinâmico ou copia e cola</span>
+        </button>
+        <button type="button" class="forma-pagamento flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-6 text-left shadow" data-forma="Cartão por aproximação">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64" aria-hidden="true" style="width:4rem;height:4rem;flex-shrink:0">
+                <rect width="128" height="128" rx="64" fill="#06793A"/>
+                <rect x="34" y="44" width="60" height="40" rx="8" fill="#fff"/>
+                <rect x="34" y="56" width="60" height="8" fill="#F28A54"/>
+                <rect x="44" y="70" width="16" height="8" rx="2" fill="#06793A"/>
+            </svg>
+            <span class="text-lg font-semibold text-gray-900">Cartão por aproximação</span>
+        </button>
+        <button type="button" class="forma-pagamento flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-6 text-left shadow" data-forma="Carteira digital">
+            <img src="~/img/icones/carteira-digital.svg" alt="" width="64" height="64" style="width:4rem;height:4rem" />
+            <span class="text-lg font-semibold text-gray-900">Carteira digital</span>
+        </button>
+        <button type="button" class="forma-pagamento flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-6 text-left shadow" data-forma="Voucher-Ticket">
+            <img src="~/img/icones/voucher-ticket.svg" alt="" width="64" height="64" style="width:4rem;height:4rem" />
+            <span class="text-lg font-semibold text-gray-900">Voucher-Ticket</span>
+        </button>
+    </div>
+
+    <a class="inline-block rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]" asp-controller="ValidaPagamentos" asp-action="Index">validar pagamento</a>
+
+    <form id="form-pagamento" asp-action="Escolher" method="post" style="display:none"></form>
+</section>
+
+<div id="processando-pagamento" role="status" aria-live="polite" style="display:none;position:fixed;inset:0;z-index:60;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:1rem">
+    <p class="flex items-center gap-4 rounded-2xl bg-white px-8 py-6 text-lg font-semibold text-gray-900 shadow">
+        <svg class="animate-spin" viewBox="0 0 24 24" aria-hidden="true" style="width:1.25rem;height:1.25rem;margin-right:0.75rem;animation:c4two-spin 1s linear infinite">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" style="opacity:.25"></circle>
+            <path fill="currentColor" style="opacity:.75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        processando forma de pagamento
+    </p>
+</div>
+<style>
+    @@keyframes c4two-spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+<script>
+    (function () {
+        var formulario = document.getElementById("form-pagamento");
+        var painel = document.getElementById("processando-pagamento");
+        var token = formulario ? formulario.querySelector("input[name='__RequestVerificationToken']") : null;
+        if (!formulario || !painel) {
+            return;
+        }
+
+        document.querySelectorAll(".forma-pagamento").forEach(function (botao) {
+            botao.addEventListener("click", function () {
+                var inicio = Date.now();
+                painel.style.display = "flex";
+                document.querySelectorAll(".forma-pagamento").forEach(function (outro) {
+                    outro.disabled = true;
+                });
+                fetch(formulario.action, {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "RequestVerificationToken": token ? token.value : "",
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: "forma=" + encodeURIComponent(botao.getAttribute("data-forma") || "")
+                }).then(function (resposta) {
+                    if (!resposta.ok) {
+                        throw new Error("falha");
+                    }
+                    return resposta.json();
+                }).then(function (dados) {
+                    if (!dados || !dados.ok) {
+                        throw new Error("falha");
+                    }
+                    var espera = 8000 - (Date.now() - inicio);
+                    setTimeout(function () {
+                        painel.style.display = "none";
+                        document.querySelectorAll(".forma-pagamento").forEach(function (outro) {
+                            outro.disabled = false;
+                        });
+                    }, espera > 0 ? espera : 0);
+                }).catch(function () {
+                    painel.style.display = "none";
+                    document.querySelectorAll(".forma-pagamento").forEach(function (outro) {
+                        outro.disabled = false;
+                    });
+                });
+            });
+        });
+    })();
+</script>

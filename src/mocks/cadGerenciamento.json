@@ -1,0 +1,28 @@
+{
+  "cadastroEstabelecimento": [
+    {
+      "id": 1,
+      "nome": "Restaurante",
+      "tipo": "Restaurante",
+      "telefone": "11999990001",
+      "endereco": "Rua das Flores, 100",
+      "cidade": "São Paulo"
+    },
+    {
+      "id": 2,
+      "nome": "Pizzaria",
+      "tipo": "Pizzaria",
+      "telefone": "11999990002",
+      "endereco": "Avenida Central, 250",
+      "cidade": "São Paulo"
+    },
+    {
+      "id": 3,
+      "nome": "Bar",
+      "tipo": "Bar",
+      "telefone": "11999990003",
+      "endereco": "Rua do Comércio, 40",
+      "cidade": "São Paulo"
+    }
+  ]
+}

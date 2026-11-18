@@ -1,0 +1,136 @@
+[
+  {
+    "codigo": "4T-540510",
+    "dataHora": "2026-11-16T18:05:38.7592475-03:00",
+    "formaDePagamento": "PIX QR dinâmico ou copia e cola",
+    "cliente": {
+      "login": "cliente",
+      "id": "1",
+      "cpf": "1234567890",
+      "nome": "Nome do ciente",
+      "email": "email@email.com",
+      "telefone": "1234567890",
+      "endereco": "Endereço do ciente",
+      "cidade": "Cidade do ciente",
+      "estado": "Estado do ciente",
+      "cep": "1234567891",
+      "pais": "País do ciente"
+    },
+    "mesa": {
+      "id": 5,
+      "idEstabelecimento": 1,
+      "nome": "Mesa6",
+      "tipo": "interna",
+      "capacidade": "6",
+      "status": "reservada",
+      "qrCode": "b8147773a70943f787c7b92adb8709bb"
+    },
+    "itensConsumidos": [],
+    "checklistSaida": {
+      "checked": true,
+      "saidaOk": "checked de saída ok",
+      "dataHora": "2026-11-16T18:07:51.2887140-03:00"
+    }
+  },
+  {
+    "codigo": "4T-143347",
+    "dataHora": "2026-11-16T18:05:42.9264492-03:00",
+    "formaDePagamento": "Voucher-Ticket",
+    "cliente": {
+      "login": "cliente2",
+      "id": "2",
+      "cpf": "242444434234",
+      "nome": "Nome do cliente 2",
+      "email": "cliente2@cliente2.com.br",
+      "telefone": "113424234433",
+      "endereco": "Endereço do cliente 2",
+      "cidade": "Cidade do cliente 2",
+      "estado": "Estado do cliente 2",
+      "cep": "1234567891",
+      "pais": "País do cliente 2"
+    },
+    "mesa": {
+      "id": 5,
+      "idEstabelecimento": 1,
+      "nome": "Mesa6",
+      "tipo": "interna",
+      "capacidade": "6",
+      "status": "reservada",
+      "qrCode": "b8147773a70943f787c7b92adb8709bb"
+    },
+    "itensConsumidos": [
+      {
+        "id": "4666a05d-d4a9-41be-b1b6-24917ee14bcd",
+        "sessaoEstabelecimento": {
+          "guid": "a4c6abbd-3946-4820-a60f-a9537702c2bb",
+          "idEstabelecimento": 1,
+          "nome": "Restaurante",
+          "tipo": "Restaurante",
+          "login": "cliente3",
+          "nomeCliente": "Cliente3",
+          "dataHoraAbertura": "2026-11-16T18:00:43.0247156-03:00"
+        },
+        "sessaoMesaCliente": {
+          "guid": "264b745b-ea19-483b-b4df-a469a5083264",
+          "sessaoEstabelecimento": {
+            "guid": "a4c6abbd-3946-4820-a60f-a9537702c2bb",
+            "idEstabelecimento": 1,
+            "nome": "Restaurante",
+            "tipo": "Restaurante",
+            "login": "cliente3",
+            "nomeCliente": "Cliente3",
+            "dataHoraAbertura": "2026-11-16T18:00:43.0247156-03:00"
+          },
+          "mesa": {
+            "id": 5,
+            "idEstabelecimento": 1,
+            "nome": "Mesa6",
+            "tipo": "interna",
+            "capacidade": "6",
+            "status": "reservada",
+            "qrCode": "b8147773a70943f787c7b92adb8709bb"
+          },
+          "cliente": {
+            "login": "cliente2",
+            "id": "2",
+            "cpf": "242444434234",
+            "nome": "Nome do cliente 2",
+            "email": "cliente2@cliente2.com.br",
+            "telefone": "113424234433",
+            "endereco": "Endereço do cliente 2",
+            "cidade": "Cidade do cliente 2",
+            "estado": "Estado do cliente 2",
+            "cep": "1234567891",
+            "pais": "País do cliente 2"
+          },
+          "capacidadeAtualStatus": {
+            "id": 5,
+            "capacidadeAtual": "3"
+          }
+        },
+        "item": {
+          "id": 3,
+          "idEstabelecimento": 1,
+          "nome": "Porção",
+          "categoria": "Porção",
+          "descricao": "Porções para compartilhar",
+          "preco": "35,00",
+          "preparoCozinha": "sim",
+          "dataHora": "2026-11-16T18:01:13.1859498-03:00",
+          "statusEntrega": "entregue",
+          "statusPedidoCozinha": "Preparado aguardando entrega",
+          "compartilhado": "sim"
+        }
+      }
+    ],
+    "checklistSaida": {
+      "checked": true,
+      "saidaOk": "checked de saída ok",
+      "dataHora": "2026-11-16T18:07:48.2175009-03:00"
+    },
+    "avaliacao": {
+      "nota": "Muito satisfeito",
+      "dataHora": "2026-11-16T18:07:12.1572795-03:00"
+    }
+  }
+]

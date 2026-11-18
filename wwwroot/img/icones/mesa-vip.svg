@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Mesa VIP">
+  <rect width="128" height="128" rx="64" fill="#06793A"/>
+  <path fill="#F6C453" d="M64 18l6 14h15l-12 9 5 15-14-9-14 9 5-15-12-9h15z"/>
+  <rect x="28" y="68" width="72" height="10" rx="4" fill="#fff"/>
+  <rect x="40" y="78" width="8" height="24" rx="3" fill="#fff"/>
+  <rect x="80" y="78" width="8" height="24" rx="3" fill="#fff"/>
+</svg>

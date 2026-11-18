@@ -1,0 +1,66 @@
+{
+  "ocupantes": [
+    {
+      "sessaoEstabelecimento": "bd21e82f-f9b3-413e-a811-c2b299edacf6",
+      "mesaId": 5,
+      "idEstabelecimento": 1,
+      "login": "cliente2",
+      "nome": "Nome do cliente 2"
+    },
+    {
+      "sessaoEstabelecimento": "dd98da31-6436-4b19-aec4-3a90fc0d2600",
+      "mesaId": 5,
+      "idEstabelecimento": 1,
+      "login": "cliente",
+      "nome": "Nome do ciente"
+    },
+    {
+      "sessaoEstabelecimento": "dd98da31-6436-4b19-aec4-3a90fc0d2600",
+      "mesaId": 5,
+      "idEstabelecimento": 1,
+      "login": "cliente2",
+      "nome": "Nome do cliente 2"
+    },
+    {
+      "sessaoEstabelecimento": "a4c6abbd-3946-4820-a60f-a9537702c2bb",
+      "mesaId": 5,
+      "idEstabelecimento": 1,
+      "login": "cliente3",
+      "nome": "Cliente3"
+    },
+    {
+      "sessaoEstabelecimento": "a4c6abbd-3946-4820-a60f-a9537702c2bb",
+      "mesaId": 5,
+      "idEstabelecimento": 1,
+      "login": "cliente2",
+      "nome": "Nome do cliente 2"
+    },
+    {
+      "sessaoEstabelecimento": "a4c6abbd-3946-4820-a60f-a9537702c2bb",
+      "mesaId": 5,
+      "idEstabelecimento": 1,
+      "login": "cliente",
+      "nome": "Nome do ciente"
+    }
+  ],
+  "compartilhamentos": [
+    {
+      "id": "f5b3992f-96bb-4f17-a1f4-30a9a06a9e79",
+      "consumoId": "4666a05d-d4a9-41be-b1b6-24917ee14bcd",
+      "sessaoEstabelecimento": "a4c6abbd-3946-4820-a60f-a9537702c2bb",
+      "mesaId": 5,
+      "idEstabelecimento": 1,
+      "loginAutor": "cliente2",
+      "nomeCliente": "Nome do cliente 2",
+      "nomeItem": "Porção",
+      "descricao": "Porções para compartilhar",
+      "categoria": "Porção",
+      "preco": "35,00",
+      "aceites": [
+        "cliente",
+        "cliente3"
+      ],
+      "recusas": []
+    }
+  ]
+}

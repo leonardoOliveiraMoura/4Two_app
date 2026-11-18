@@ -1,0 +1,13 @@
+{
+  "cliente": "Nome do cliente 2",
+  "mesa": "Mesa 6",
+  "total": "11,67",
+  "itens": [
+    {
+      "nome": "Porção",
+      "preco": "11,67",
+      "dataHora": "2026-11-16T18:01:13.1859498-03:00",
+      "statusEntrega": "entregue"
+    }
+  ]
+}

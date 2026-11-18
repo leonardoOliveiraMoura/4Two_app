@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Porcao">
+  <rect width="128" height="128" rx="64" fill="#06793A"/>
+  <path fill="#fff" d="M22 66h84l-10 34H32z"/>
+  <rect x="32" y="30" width="8" height="40" rx="3" fill="#F6C453"/>
+  <rect x="46" y="22" width="8" height="48" rx="3" fill="#fff"/>
+  <rect x="60" y="18" width="8" height="52" rx="3" fill="#F6C453"/>
+  <rect x="74" y="26" width="8" height="44" rx="3" fill="#fff"/>
+  <rect x="88" y="34" width="8" height="36" rx="3" fill="#F6C453"/>
+</svg>

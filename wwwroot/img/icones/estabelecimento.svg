@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Estabelecimentos">
+  <rect width="128" height="128" rx="64" fill="#06793A"/>
+  <path fill="#F6C453" d="M24 54h80l-10 16H34z"/>
+  <rect x="32" y="66" width="64" height="38" rx="4" fill="#fff"/>
+  <rect x="42" y="76" width="12" height="10" rx="1" fill="#06793A"/>
+  <rect x="74" y="76" width="12" height="10" rx="1" fill="#06793A"/>
+  <rect x="56" y="82" width="16" height="22" rx="2" fill="#06793A"/>
+</svg>

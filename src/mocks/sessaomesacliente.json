@@ -1,0 +1,38 @@
+{
+  "guid": "264b745b-ea19-483b-b4df-a469a5083264",
+  "sessaoEstabelecimento": {
+    "guid": "a4c6abbd-3946-4820-a60f-a9537702c2bb",
+    "idEstabelecimento": 1,
+    "nome": "Restaurante",
+    "tipo": "Restaurante",
+    "login": "cliente3",
+    "nomeCliente": "Cliente3",
+    "dataHoraAbertura": "2026-11-16T18:00:43.0247156-03:00"
+  },
+  "mesa": {
+    "id": 5,
+    "idEstabelecimento": 1,
+    "nome": "Mesa6",
+    "tipo": "interna",
+    "capacidade": "6",
+    "status": "reservada",
+    "qrCode": "b8147773a70943f787c7b92adb8709bb"
+  },
+  "cliente": {
+    "login": "cliente3",
+    "id": "2",
+    "cpf": "232311342345112",
+    "nome": "Cliente3",
+    "email": "cliente3@email.com",
+    "telefone": "12122323423",
+    "endereco": "Rua tal 123",
+    "cidade": "São Paulo",
+    "estado": "SP",
+    "cep": "23424556",
+    "pais": "Brasil"
+  },
+  "capacidadeAtualStatus": {
+    "id": 5,
+    "capacidadeAtual": "3"
+  }
+}

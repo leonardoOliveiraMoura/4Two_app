@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Mesa interna">
+  <rect width="128" height="128" rx="64" fill="#06793A"/>
+  <rect x="78" y="24" width="26" height="22" rx="3" fill="none" stroke="#fff" stroke-width="5"/>
+  <path d="M91 24v22M78 35h26" stroke="#fff" stroke-width="4"/>
+  <rect x="28" y="62" width="72" height="10" rx="4" fill="#fff"/>
+  <rect x="40" y="72" width="8" height="28" rx="3" fill="#fff"/>
+  <rect x="80" y="72" width="8" height="28" rx="3" fill="#fff"/>
+</svg>

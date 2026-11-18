@@ -1,0 +1,461 @@
+[
+  {
+    "id": 1,
+    "sessaoCliente": {
+      "guid": "7b37a1a8-3ae9-4374-9ee7-91233cc54f7b",
+      "idEstabelecimento": 1,
+      "nome": "Restaurante",
+      "tipo": "Restaurante",
+      "login": "cliente",
+      "nomeCliente": "Nome do ciente",
+      "dataHoraAbertura": "2026-11-10T18:46:21.5863499-03:00"
+    },
+    "sessaoMesaCliente": {
+      "guid": "7e31b62f-c950-4b32-8bc4-c2575c3f23b3",
+      "sessaoEstabelecimento": {
+        "guid": "7b37a1a8-3ae9-4374-9ee7-91233cc54f7b",
+        "idEstabelecimento": 1,
+        "nome": "Restaurante",
+        "tipo": "Restaurante",
+        "login": "cliente",
+        "nomeCliente": "Nome do ciente",
+        "dataHoraAbertura": "2026-11-10T18:46:21.5863499-03:00"
+      },
+      "mesa": {
+        "id": 5,
+        "idEstabelecimento": 1,
+        "nome": "Mesa6",
+        "tipo": "interna",
+        "capacidade": "6",
+        "status": "reservada",
+        "qrCode": "b8147773a70943f787c7b92adb8709bb"
+      },
+      "cliente": {
+        "login": "cliente",
+        "id": "1",
+        "cpf": "1234567890",
+        "nome": "Nome do ciente",
+        "email": "email@email.com",
+        "telefone": "1234567890",
+        "endereco": "Endereço do ciente",
+        "cidade": "Cidade do ciente",
+        "estado": "Estado do ciente",
+        "cep": "1234567891",
+        "pais": "País do ciente"
+      },
+      "capacidadeAtualStatus": {
+        "id": 5,
+        "capacidadeAtual": "1"
+      }
+    },
+    "avaliacaoFeita": "Satisfeito"
+  },
+  {
+    "id": 2,
+    "sessaoCliente": {
+      "guid": "f2c5f458-4fc8-41ae-83fa-8a02e3734951",
+      "idEstabelecimento": 1,
+      "nome": "Restaurante",
+      "tipo": "Restaurante",
+      "login": "cliente",
+      "nomeCliente": "Nome do ciente",
+      "dataHoraAbertura": "2026-11-10T19:00:29.164664-03:00"
+    },
+    "sessaoMesaCliente": {
+      "guid": "75143e56-9c6a-4e14-a2bf-b05c31ecc4b7",
+      "sessaoEstabelecimento": {
+        "guid": "f2c5f458-4fc8-41ae-83fa-8a02e3734951",
+        "idEstabelecimento": 1,
+        "nome": "Restaurante",
+        "tipo": "Restaurante",
+        "login": "cliente",
+        "nomeCliente": "Nome do ciente",
+        "dataHoraAbertura": "2026-11-10T19:00:29.164664-03:00"
+      },
+      "mesa": {
+        "id": 5,
+        "idEstabelecimento": 1,
+        "nome": "Mesa6",
+        "tipo": "interna",
+        "capacidade": "6",
+        "status": "reservada",
+        "qrCode": "b8147773a70943f787c7b92adb8709bb"
+      },
+      "cliente": {
+        "login": "cliente",
+        "id": "1",
+        "cpf": "1234567890",
+        "nome": "Nome do ciente",
+        "email": "email@email.com",
+        "telefone": "1234567890",
+        "endereco": "Endereço do ciente",
+        "cidade": "Cidade do ciente",
+        "estado": "Estado do ciente",
+        "cep": "1234567891",
+        "pais": "País do ciente"
+      },
+      "capacidadeAtualStatus": {
+        "id": 5,
+        "capacidadeAtual": "1"
+      }
+    },
+    "avaliacaoFeita": "Muito satisfeito"
+  },
+  {
+    "id": 3,
+    "sessaoCliente": {
+      "guid": "57688072-f711-40f5-b06b-e26d58d65255",
+      "idEstabelecimento": 1,
+      "nome": "Restaurante",
+      "tipo": "Restaurante",
+      "login": "cliente",
+      "nomeCliente": "Nome do ciente",
+      "dataHoraAbertura": "2026-11-11T19:37:43.9627239-03:00"
+    },
+    "sessaoMesaCliente": {
+      "guid": "7154eaf5-13c6-44f0-bf83-1d2a90547f7b",
+      "sessaoEstabelecimento": {
+        "guid": "57688072-f711-40f5-b06b-e26d58d65255",
+        "idEstabelecimento": 1,
+        "nome": "Restaurante",
+        "tipo": "Restaurante",
+        "login": "cliente",
+        "nomeCliente": "Nome do ciente",
+        "dataHoraAbertura": "2026-11-11T19:37:43.9627239-03:00"
+      },
+      "mesa": {
+        "id": 5,
+        "idEstabelecimento": 1,
+        "nome": "Mesa6",
+        "tipo": "interna",
+        "capacidade": "6",
+        "status": "reservada",
+        "qrCode": "b8147773a70943f787c7b92adb8709bb"
+      },
+      "cliente": {
+        "login": "cliente",
+        "id": "1",
+        "cpf": "1234567890",
+        "nome": "Nome do ciente",
+        "email": "email@email.com",
+        "telefone": "1234567890",
+        "endereco": "Endereço do ciente",
+        "cidade": "Cidade do ciente",
+        "estado": "Estado do ciente",
+        "cep": "1234567891",
+        "pais": "País do ciente"
+      },
+      "capacidadeAtualStatus": {
+        "id": 5,
+        "capacidadeAtual": "1"
+      }
+    },
+    "avaliacaoFeita": "Satisfeito"
+  },
+  {
+    "id": 4,
+    "sessaoCliente": {
+      "guid": "13021abf-56d6-4553-96b1-47560fb7bbe6",
+      "idEstabelecimento": 1,
+      "nome": "Restaurante",
+      "tipo": "Restaurante",
+      "login": "cliente",
+      "nomeCliente": "Nome do ciente",
+      "dataHoraAbertura": "2026-11-12T11:54:22.8466513-03:00"
+    },
+    "sessaoMesaCliente": {
+      "guid": "39f65c14-35f4-4563-8d7e-ebe49995d508",
+      "sessaoEstabelecimento": {
+        "guid": "13021abf-56d6-4553-96b1-47560fb7bbe6",
+        "idEstabelecimento": 1,
+        "nome": "Restaurante",
+        "tipo": "Restaurante",
+        "login": "cliente",
+        "nomeCliente": "Nome do ciente",
+        "dataHoraAbertura": "2026-11-12T11:54:22.8466513-03:00"
+      },
+      "mesa": {
+        "id": 5,
+        "idEstabelecimento": 1,
+        "nome": "Mesa6",
+        "tipo": "interna",
+        "capacidade": "6",
+        "status": "reservada",
+        "qrCode": "b8147773a70943f787c7b92adb8709bb"
+      },
+      "cliente": {
+        "login": "cliente",
+        "id": "1",
+        "cpf": "1234567890",
+        "nome": "Nome do ciente",
+        "email": "email@email.com",
+        "telefone": "1234567890",
+        "endereco": "Endereço do ciente",
+        "cidade": "Cidade do ciente",
+        "estado": "Estado do ciente",
+        "cep": "1234567891",
+        "pais": "País do ciente"
+      },
+      "capacidadeAtualStatus": {
+        "id": 5,
+        "capacidadeAtual": "3"
+      }
+    },
+    "avaliacaoFeita": "Muito satisfeito"
+  },
+  {
+    "id": 5,
+    "sessaoCliente": {
+      "guid": "3aab7a70-2f9f-4f56-b994-9565bf393be3",
+      "idEstabelecimento": 1,
+      "nome": "Restaurante",
+      "tipo": "Restaurante",
+      "login": "cliente",
+      "nomeCliente": "Nome do ciente",
+      "dataHoraAbertura": "2026-11-13T16:32:55.7081953-03:00"
+    },
+    "sessaoMesaCliente": {
+      "guid": "ad37647b-3e2b-48cc-9e95-364f0a604e52",
+      "sessaoEstabelecimento": {
+        "guid": "3aab7a70-2f9f-4f56-b994-9565bf393be3",
+        "idEstabelecimento": 1,
+        "nome": "Restaurante",
+        "tipo": "Restaurante",
+        "login": "cliente",
+        "nomeCliente": "Nome do ciente",
+        "dataHoraAbertura": "2026-11-13T16:32:55.7081953-03:00"
+      },
+      "mesa": {
+        "id": 5,
+        "idEstabelecimento": 1,
+        "nome": "Mesa6",
+        "tipo": "interna",
+        "capacidade": "6",
+        "status": "reservada",
+        "qrCode": "b8147773a70943f787c7b92adb8709bb"
+      },
+      "cliente": {
+        "login": "cliente",
+        "id": "1",
+        "cpf": "1234567890",
+        "nome": "Nome do ciente",
+        "email": "email@email.com",
+        "telefone": "1234567890",
+        "endereco": "Endereço do ciente",
+        "cidade": "Cidade do ciente",
+        "estado": "Estado do ciente",
+        "cep": "1234567891",
+        "pais": "País do ciente"
+      },
+      "capacidadeAtualStatus": {
+        "id": 5,
+        "capacidadeAtual": "1"
+      }
+    },
+    "avaliacaoFeita": "Muito satisfeito"
+  },
+  {
+    "id": 6,
+    "sessaoCliente": {
+      "guid": "01bf6ba1-1103-42b7-b803-3372144467a2",
+      "idEstabelecimento": 1,
+      "nome": "Restaurante",
+      "tipo": "Restaurante",
+      "login": "cliente",
+      "nomeCliente": "Nome do ciente",
+      "dataHoraAbertura": "2026-11-13T17:53:29.6592311-03:00"
+    },
+    "sessaoMesaCliente": {
+      "guid": "2e9c278a-535f-413a-84ed-4245b7c9a94d",
+      "sessaoEstabelecimento": {
+        "guid": "01bf6ba1-1103-42b7-b803-3372144467a2",
+        "idEstabelecimento": 1,
+        "nome": "Restaurante",
+        "tipo": "Restaurante",
+        "login": "cliente",
+        "nomeCliente": "Nome do ciente",
+        "dataHoraAbertura": "2026-11-13T17:53:29.6592311-03:00"
+      },
+      "mesa": {
+        "id": 5,
+        "idEstabelecimento": 1,
+        "nome": "Mesa6",
+        "tipo": "interna",
+        "capacidade": "6",
+        "status": "reservada",
+        "qrCode": "b8147773a70943f787c7b92adb8709bb"
+      },
+      "cliente": {
+        "login": "cliente3",
+        "id": "2",
+        "cpf": "232311342345112",
+        "nome": "Cliente3",
+        "email": "cliente3@email.com",
+        "telefone": "12122323423",
+        "endereco": "Rua tal 123",
+        "cidade": "São Paulo",
+        "estado": "SP",
+        "cep": "23424556",
+        "pais": "Brasil"
+      },
+      "capacidadeAtualStatus": {
+        "id": 5,
+        "capacidadeAtual": "1"
+      }
+    },
+    "avaliacaoFeita": "Muito satisfeito"
+  },
+  {
+    "id": 7,
+    "sessaoCliente": {
+      "guid": "08ca7f40-7723-491a-8134-1c0951276ad3",
+      "idEstabelecimento": 1,
+      "nome": "Restaurante",
+      "tipo": "Restaurante",
+      "login": "cliente3",
+      "nomeCliente": "Cliente3",
+      "dataHoraAbertura": "2026-11-13T18:16:24.1657232-03:00"
+    },
+    "sessaoMesaCliente": {
+      "guid": "5453b3c8-13b2-4726-8e71-2a17c279204e",
+      "sessaoEstabelecimento": {
+        "guid": "08ca7f40-7723-491a-8134-1c0951276ad3",
+        "idEstabelecimento": 1,
+        "nome": "Restaurante",
+        "tipo": "Restaurante",
+        "login": "cliente3",
+        "nomeCliente": "Cliente3",
+        "dataHoraAbertura": "2026-11-13T18:16:24.1657232-03:00"
+      },
+      "mesa": {
+        "id": 5,
+        "idEstabelecimento": 1,
+        "nome": "Mesa6",
+        "tipo": "interna",
+        "capacidade": "6",
+        "status": "reservada",
+        "qrCode": "b8147773a70943f787c7b92adb8709bb"
+      },
+      "cliente": {
+        "login": "cliente3",
+        "id": "2",
+        "cpf": "232311342345112",
+        "nome": "Cliente3",
+        "email": "cliente3@email.com",
+        "telefone": "12122323423",
+        "endereco": "Rua tal 123",
+        "cidade": "São Paulo",
+        "estado": "SP",
+        "cep": "23424556",
+        "pais": "Brasil"
+      },
+      "capacidadeAtualStatus": {
+        "id": 5,
+        "capacidadeAtual": "2"
+      }
+    },
+    "avaliacaoFeita": "Muito satisfeito"
+  },
+  {
+    "id": 8,
+    "sessaoCliente": {
+      "guid": "08ca7f40-7723-491a-8134-1c0951276ad3",
+      "idEstabelecimento": 1,
+      "nome": "Restaurante",
+      "tipo": "Restaurante",
+      "login": "cliente3",
+      "nomeCliente": "Cliente3",
+      "dataHoraAbertura": "2026-11-13T18:16:24.1657232-03:00"
+    },
+    "sessaoMesaCliente": {
+      "guid": "5453b3c8-13b2-4726-8e71-2a17c279204e",
+      "sessaoEstabelecimento": {
+        "guid": "08ca7f40-7723-491a-8134-1c0951276ad3",
+        "idEstabelecimento": 1,
+        "nome": "Restaurante",
+        "tipo": "Restaurante",
+        "login": "cliente3",
+        "nomeCliente": "Cliente3",
+        "dataHoraAbertura": "2026-11-13T18:16:24.1657232-03:00"
+      },
+      "mesa": {
+        "id": 5,
+        "idEstabelecimento": 1,
+        "nome": "Mesa6",
+        "tipo": "interna",
+        "capacidade": "6",
+        "status": "reservada",
+        "qrCode": "b8147773a70943f787c7b92adb8709bb"
+      },
+      "cliente": {
+        "login": "cliente",
+        "id": "1",
+        "cpf": "1234567890",
+        "nome": "Nome do ciente",
+        "email": "email@email.com",
+        "telefone": "1234567890",
+        "endereco": "Endereço do ciente",
+        "cidade": "Cidade do ciente",
+        "estado": "Estado do ciente",
+        "cep": "1234567891",
+        "pais": "País do ciente"
+      },
+      "capacidadeAtualStatus": {
+        "id": 5,
+        "capacidadeAtual": "2"
+      }
+    },
+    "avaliacaoFeita": "Muito satisfeito"
+  },
+  {
+    "id": 9,
+    "sessaoCliente": {
+      "guid": "a4c6abbd-3946-4820-a60f-a9537702c2bb",
+      "idEstabelecimento": 1,
+      "nome": "Restaurante",
+      "tipo": "Restaurante",
+      "login": "cliente3",
+      "nomeCliente": "Cliente3",
+      "dataHoraAbertura": "2026-11-16T18:00:43.0247156-03:00"
+    },
+    "sessaoMesaCliente": {
+      "guid": "264b745b-ea19-483b-b4df-a469a5083264",
+      "sessaoEstabelecimento": {
+        "guid": "a4c6abbd-3946-4820-a60f-a9537702c2bb",
+        "idEstabelecimento": 1,
+        "nome": "Restaurante",
+        "tipo": "Restaurante",
+        "login": "cliente3",
+        "nomeCliente": "Cliente3",
+        "dataHoraAbertura": "2026-11-16T18:00:43.0247156-03:00"
+      },
+      "mesa": {
+        "id": 5,
+        "idEstabelecimento": 1,
+        "nome": "Mesa6",
+        "tipo": "interna",
+        "capacidade": "6",
+        "status": "reservada",
+        "qrCode": "b8147773a70943f787c7b92adb8709bb"
+      },
+      "cliente": {
+        "login": "cliente2",
+        "id": "2",
+        "cpf": "242444434234",
+        "nome": "Nome do cliente 2",
+        "email": "cliente2@cliente2.com.br",
+        "telefone": "113424234433",
+        "endereco": "Endereço do cliente 2",
+        "cidade": "Cidade do cliente 2",
+        "estado": "Estado do cliente 2",
+        "cep": "1234567891",
+        "pais": "País do cliente 2"
+      },
+      "capacidadeAtualStatus": {
+        "id": 5,
+        "capacidadeAtual": "3"
+      }
+    },
+    "avaliacaoFeita": "Muito satisfeito"
+  }
+]

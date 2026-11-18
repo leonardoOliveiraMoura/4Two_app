@@ -1,0 +1,195 @@
+@model FormaDePagamentoPagina
+@{
+    ViewData["Title"] = "Validar pagamento";
+    string Borda(string forma) => string.Equals(Model.FormaEscolhida, forma, StringComparison.Ordinal)
+        ? "border-color:#06793A;border-width:2px"
+        : string.Empty;
+}
+
+<section class="space-y-6 py-10">
+    <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 md:text-6xl">Validar pagamento</h1>
+    @if (Model.PagamentoAprovado)
+    {
+        <div role="status" style="display:flex;flex-direction:column;align-items:flex-start;gap:0.75rem;max-width:42rem">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="96" height="96" aria-hidden="true" style="width:6rem;height:6rem">
+                <circle cx="64" cy="64" r="64" fill="#06793A"/>
+                <path d="M38 66l16 16 36-40" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p class="text-2xl font-extrabold tracking-tight text-gray-900">Pagamento confirmado</p>
+        </div>
+    }
+    else
+    {
+        <div role="status" style="display:flex;flex-direction:column;align-items:flex-start;gap:0.75rem;max-width:42rem">
+            @Html.Raw("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 128 128\" width=\"96\" height=\"96\" aria-hidden=\"true\" style=\"width:6rem;height:6rem\"><circle cx=\"64\" cy=\"64\" r=\"58\" fill=\"none\" stroke=\"#6b7280\" stroke-width=\"8\"/><text x=\"64\" y=\"86\" text-anchor=\"middle\" font-size=\"72\" font-family=\"Arial,sans-serif\" font-weight=\"700\" fill=\"#6b7280\">?</text></svg>")
+            <p class="text-lg text-gray-900">O pagamento pode estar sendo processado. Valide o pagamento novamente dentro de alguns minutos.</p>
+        </div>
+    }
+    <p>Você paga apenas sua parte. A mesa continua aberta para quem ainda estiver consumindo.</p>
+    <p class="text-lg font-semibold text-gray-900">Nome do cliente</p>
+    <p class="text-2xl font-extrabold tracking-tight text-gray-900">@Model.Cliente</p>
+    <p class="text-lg text-gray-600">@Model.Cliente · atualizada em tempo real</p>
+    <ol aria-label="Etapas da conta" style="display:flex;align-items:center;gap:0.75rem;width:100%;max-width:42rem;list-style:none;margin:0;padding:0.75rem 0">
+        <li aria-label="Etapa 1 de 6, concluída" style="flex:1 1 0;min-width:0">
+            <span style="display:block;height:4px;border-radius:999px;background:#06793A"></span>
+        </li>
+        <li aria-label="Etapa 2 de 6, concluída" style="flex:1 1 0;min-width:0">
+            <span style="display:block;height:4px;border-radius:999px;background:#06793A"></span>
+        </li>
+        <li aria-label="Etapa 3 de 6, concluída" style="flex:1 1 0;min-width:0">
+            <span style="display:block;height:4px;border-radius:999px;background:#06793A"></span>
+        </li>
+        <li aria-label="Etapa 4 de 6, concluída" style="flex:1 1 0;min-width:0">
+            <span style="display:block;height:4px;border-radius:999px;background:#06793A"></span>
+        </li>
+        <li aria-label="Etapa 5 de 6, concluída" style="flex:1 1 0;min-width:0">
+            <span style="display:block;height:4px;border-radius:999px;background:#06793A"></span>
+        </li>
+        <li id="etapa-6" aria-label="Etapa 6 de 6, @(string.IsNullOrWhiteSpace(Model.CodigoLiberacao) ? "pendente" : "concluída")" style="flex:1 1 0;min-width:0">
+            <span id="etapa-6-barra" style="display:block;height:4px;border-radius:999px;background:@(string.IsNullOrWhiteSpace(Model.CodigoLiberacao) ? "#e5e7eb" : "#06793A")"></span>
+        </li>
+    </ol>
+
+    <div>
+        <p class="text-lg font-semibold text-gray-900">PIX copia e cola · R$ @Model.Valor</p>
+        @if (!string.IsNullOrWhiteSpace(Model.QrCode))
+        {
+            <img src="data:image/png;base64,@Model.QrCode" alt="QR code do PIX copia e cola de R$ @Model.Valor" width="160" height="160" style="width:10rem;height:10rem" />
+        }
+        <p class="text-gray-700" style="max-width:42rem;word-break:break-all">@Model.CopiaCola</p>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.FormaEscolhida))
+    {
+        <p class="text-lg font-semibold text-gray-900">Forma escolhida: @Model.FormaEscolhida</p>
+    }
+
+    <div style="display:flex;flex-direction:column;gap:1rem;max-width:42rem">
+        <div class="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow" style="@Borda("PIX QR dinâmico ou copia e cola")">
+            <img src="~/img/icones/pix.svg" alt="" width="64" height="64" style="width:4rem;height:4rem" />
+            <span class="text-lg font-semibold text-gray-900">PIX QR dinâmico ou copia e cola</span>
+        </div>
+        <div class="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow" style="@Borda("Cartão por aproximação")">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="64" height="64" aria-hidden="true" style="width:4rem;height:4rem;flex-shrink:0">
+                <rect width="128" height="128" rx="64" fill="#06793A"/>
+                <rect x="34" y="44" width="60" height="40" rx="8" fill="#fff"/>
+                <rect x="34" y="56" width="60" height="8" fill="#F28A54"/>
+                <rect x="44" y="70" width="16" height="8" rx="2" fill="#06793A"/>
+            </svg>
+            <span class="text-lg font-semibold text-gray-900">Cartão por aproximação</span>
+        </div>
+        <div class="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow" style="@Borda("Carteira digital")">
+            <img src="~/img/icones/carteira-digital.svg" alt="" width="64" height="64" style="width:4rem;height:4rem" />
+            <span class="text-lg font-semibold text-gray-900">Carteira digital</span>
+        </div>
+        <div class="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow" style="@Borda("Voucher-Ticket")">
+            <img src="~/img/icones/voucher-ticket.svg" alt="" width="64" height="64" style="width:4rem;height:4rem" />
+            <span class="text-lg font-semibold text-gray-900">Voucher-Ticket</span>
+        </div>
+    </div>
+    @if (Model.PagamentoAprovado)
+    {
+        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:0.75rem;max-width:42rem">
+            <form id="form-confirmacao" method="post" asp-controller="ValidaPagamentos" asp-action="ConfirmacaoSaida">
+                @Html.AntiForgeryToken()
+                <button type="button" id="gerar-confirmacao" class="rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832] disabled:opacity-50 disabled:pointer-events-none" @(string.IsNullOrWhiteSpace(Model.CodigoLiberacao) ? null : "disabled")>Gerar confirmação de saída</button>
+            </form>
+            <div id="codigo-liberacao" role="status" style="display:@(string.IsNullOrWhiteSpace(Model.CodigoLiberacao) ? "none" : "block");background:#06793A;color:#fff;border-radius:1rem;padding:1.5rem 2rem;max-width:42rem">
+                <p style="margin:0;font-weight:700;letter-spacing:0.04em">CÓDIGO DE LIBERAÇÃO</p>
+                <p id="codigo-liberacao-valor" class="text-2xl font-extrabold" style="margin:0.5rem 0 0">@Model.CodigoLiberacao</p>
+            </div>
+        </div>
+    }
+</section>
+
+<div id="validando-pagamento" role="status" aria-live="polite" style="display:flex;position:fixed;inset:0;z-index:60;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:1rem">
+    <p class="flex items-center gap-4 rounded-2xl bg-white px-8 py-6 text-lg font-semibold text-gray-900 shadow">
+        <svg viewBox="0 0 24 24" aria-hidden="true" style="width:1.25rem;height:1.25rem;animation:c4two-spin 1s linear infinite">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" style="opacity:.25"></circle>
+            <path fill="currentColor" style="opacity:.75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        validando pagamento
+    </p>
+</div>
+<style>
+    @@keyframes c4two-spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+<script>
+    setTimeout(function () {
+        var painel = document.getElementById("validando-pagamento");
+        if (painel) {
+            painel.style.display = "none";
+        }
+    }, 8000);
+
+    var botao = document.getElementById("gerar-confirmacao");
+    if (botao) {
+        botao.addEventListener("click", function () {
+            var formulario = document.getElementById("form-confirmacao");
+            var token = formulario ? formulario.querySelector("input[name='__RequestVerificationToken']") : null;
+            botao.disabled = true;
+            fetch("/validaPagamentos/confirmacao-saida", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "RequestVerificationToken": token ? token.value : ""
+                }
+            }).then(function (resposta) {
+                return resposta.json();
+            }).then(function (dados) {
+                if (!dados || !dados.ok || !dados.codigo) {
+                    botao.disabled = false;
+                    return;
+                }
+                botao.disabled = true;
+                var box = document.getElementById("codigo-liberacao");
+                var valor = document.getElementById("codigo-liberacao-valor");
+                if (valor) {
+                    valor.textContent = dados.codigo;
+                }
+                if (box) {
+                    box.style.display = "block";
+                }
+                var etapa = document.getElementById("etapa-6");
+                var barra = document.getElementById("etapa-6-barra");
+                if (etapa) {
+                    etapa.setAttribute("aria-label", "Etapa 6 de 6, concluída");
+                }
+                if (barra) {
+                    barra.style.background = "#06793A";
+                }
+                observarChecklist();
+            }).catch(function () {
+                botao.disabled = false;
+            });
+        });
+    }
+
+    var codigoLiberacao = document.getElementById("codigo-liberacao");
+    if (codigoLiberacao && codigoLiberacao.style.display !== "none") {
+        observarChecklist();
+    }
+
+    function observarChecklist() {
+        if (window.observandoChecklistSaida) {
+            return;
+        }
+        window.observandoChecklistSaida = true;
+        var consulta = setInterval(function () {
+            fetch("/validaPagamentos/checklist-saida", { credentials: "same-origin" })
+                .then(function (resposta) {
+                    return resposta.json();
+                })
+                .then(function (dados) {
+                    if (!dados || !dados.pronto) {
+                        return;
+                    }
+                    clearInterval(consulta);
+                    window.location.assign("/avaliacao");
+                })
+                .catch(function () {});
+        }, 3000);
+    }
+</script>

@@ -1,0 +1,1246 @@
+@model SessaoEstabelecimento
+@using C4Two.Services
+@{
+    ViewData["Title"] = "Sessão estabelecimento";
+    var aberta = Model is not null && Model.IdEstabelecimento > 0;
+    var mesas = ViewData["MesasDisponiveis"] as List<MesaItem> ?? new List<MesaItem>();
+    var reserva = ViewData["SessaoMesa"] as SessaoMesaCliente;
+    var ocupantesPorMesa = ViewData["OcupantesPorMesa"] as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var avisoMesa = ViewData["AvisoMesa"] as string;
+    var itensConsumo = ViewData["ItensConsumo"] as List<ItemConsumoItem> ?? new List<ItemConsumoItem>();
+    var cesta = ViewData["Cesta"] as List<MesaConsumoItem> ?? new List<MesaConsumoItem>();
+    var integrantes = ViewData["Integrantes"] as List<IntegranteMesa> ?? new List<IntegranteMesa>();
+
+    string LinhaConsumo(MesaConsumoItem escolhido)
+    {
+        var entrega = string.IsNullOrWhiteSpace(escolhido.Item?.StatusEntrega) ? "não entregue" : escolhido.Item.StatusEntrega;
+        var texto = $"{escolhido.Item?.Nome} · {escolhido.Item?.Preco} · {escolhido.Item?.DataHora:dd/MM/yyyy HH:mm} · {entrega}";
+        if (!string.Equals(entrega, "entregue", StringComparison.OrdinalIgnoreCase))
+        {
+            var cozinha = string.IsNullOrWhiteSpace(escolhido.Item?.StatusPedidoCozinha)
+                ? MesaConsumoStore.StatusPedidoCozinhaInicial
+                : escolhido.Item.StatusPedidoCozinha;
+            texto += " · " + cozinha;
+        }
+
+        return texto;
+    }
+    var lugares = 0;
+    var ocupados = 0;
+    var mesaPontos = "";
+    var assentos = new List<(double X, double Y, double TextoX, double TextoY, bool Atual, bool Ocupado, string Nome)>();
+    MesaItem? mesaDoQr = null;
+    if (reserva is not null)
+    {
+        mesaDoQr = mesas.FirstOrDefault(item => item.Id == reserva.Mesa.Id && item.IdEstabelecimento == reserva.Mesa.IdEstabelecimento) ?? reserva.Mesa;
+        if (string.IsNullOrWhiteSpace(mesaDoQr.QrCode))
+        {
+            mesaDoQr = reserva.Mesa;
+        }
+
+        int.TryParse(reserva.Mesa.Capacidade, out lugares);
+        int.TryParse(reserva.CapacidadeAtualStatus?.CapacidadeAtual, out ocupados);
+        if (lugares < 2)
+        {
+            lugares = 4;
+        }
+
+        if (ocupados < 1)
+        {
+            ocupados = 1;
+        }
+
+        if (integrantes.Count > ocupados)
+        {
+            ocupados = integrantes.Count;
+        }
+
+        if (ocupados > lugares)
+        {
+            ocupados = lugares;
+        }
+
+        const double centro = 220;
+        const double raioMesa = 72;
+        const double raioAssento = 132;
+        string Numero(double valor) => valor.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+        if (lugares >= 3)
+        {
+            var pontos = new List<string>();
+            for (var i = 0; i < lugares; i++)
+            {
+                var meio = Math.PI / 2 + i * 2 * Math.PI / lugares;
+                var vertice = meio - Math.PI / lugares;
+                pontos.Add(Numero(centro + raioMesa * Math.Cos(vertice)) + "," + Numero(centro + raioMesa * Math.Sin(vertice)));
+                var xAssento = centro + raioAssento * Math.Cos(meio);
+                var yAssento = centro + raioAssento * Math.Sin(meio);
+                assentos.Add((
+                    xAssento,
+                    yAssento,
+                    xAssento,
+                    yAssento + 40,
+                    i < integrantes.Count && integrantes[i].Atual,
+                    i < ocupados,
+                    i < integrantes.Count ? integrantes[i].Nome : string.Empty));
+            }
+
+            mesaPontos = string.Join(" ", pontos);
+        }
+        else
+        {
+            assentos.Add((centro - 132, centro, centro - 132, centro + 40, integrantes.Count == 0 || integrantes[0].Atual, true, integrantes.Count > 0 ? integrantes[0].Nome : reserva.Cliente.Nome));
+            assentos.Add((centro + 132, centro, centro + 132, centro + 40, integrantes.Count > 1 && integrantes[1].Atual, ocupados > 1, integrantes.Count > 1 ? integrantes[1].Nome : string.Empty));
+        }
+    }
+}
+
+<section class="space-y-6 py-10">
+    <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 md:text-6xl">
+        Quem esta com você?
+    </h1>
+    <p class="max-w-2xl text-lg text-gray-600">
+        Cadastre quem está na mesa. Depois, qualquer item do cardápio poderá ser dividido entre essas pessoas.
+    </p>
+
+    @if (!aberta)
+    {
+        <p class="max-w-2xl rounded-2xl border border-gray-200 bg-white px-6 py-5 text-gray-700 shadow">
+            Nenhuma sessão de estabelecimento aberta.
+        </p>
+    }
+    else
+    {
+        <div class="max-w-2xl space-y-6 rounded-2xl border border-gray-200 bg-[#FBF7EF] px-6 py-5 shadow">
+            <div class="flex items-center gap-4">
+                <img src="~/img/icones/sessao-aberta.svg" alt="" width="80" height="80" class="rounded-full" style="width:5rem;height:5rem" />
+                @if (reserva is null)
+                {
+                    <p class="text-2xl font-extrabold tracking-tight text-gray-900">escolha uma mesa para iniciar seu consumo</p>
+                }
+                else
+                {
+                    <p class="text-2xl font-extrabold tracking-tight text-gray-900">Sua sessão está ativa na mesa @reserva.Mesa.Nome</p>
+                }
+            </div>
+            <p class="text-lg font-semibold text-gray-900">Sessão: @Model!.Guid</p>
+            <p class="text-lg font-semibold text-gray-900" style="display:flex;align-items:center;gap:0.75rem">
+                <span>Cliente: @(ViewData["NomeClienteVisivel"] as string ?? Model.NomeCliente)</span>
+                <span id="cesta-cliente" style="position:relative;display:@(cesta.Count > 0 ? "inline-flex" : "none");align-items:center">
+                    <img src="~/img/icones/cesta-itens.svg" alt="Cesta do cliente" width="40" height="40" class="rounded-full" style="width:2.5rem;height:2.5rem" />
+                    <span id="cesta-cliente-itens" style="display:none;position:absolute;left:0;top:100%;z-index:40;min-width:16rem;background:#fff;border:1px solid #e2e8f0;border-radius:0.75rem;padding:0.75rem;box-shadow:0 8px 24px rgba(0,0,0,.12)">
+                        @foreach (var escolhido in cesta)
+                        {
+                            <span style="display:block" data-consumo-id="@escolhido.Id" data-consumo-linha="completa">@LinhaConsumo(escolhido)</span>
+                        }
+                    </span>
+                </span>
+            </p>
+            <p class="text-lg font-semibold text-gray-900">Abertura: @Model.DataHoraAbertura.ToString("dd/MM/yyyy HH:mm")</p>
+            @if (mesaDoQr is not null && !string.IsNullOrWhiteSpace(mesaDoQr.QrCode))
+            {
+                <img src="data:image/png;base64,@MesaQrCode.PngBase64(mesaDoQr)" alt="QR code de @mesaDoQr.Nome" width="160" height="160" style="width:10rem;height:10rem" />
+            }
+            <p class="text-gray-700">Estabelecimento: @Model.Nome</p>
+            <p class="text-gray-700">Id: @Model.IdEstabelecimento</p>
+            <p class="text-gray-700">Tipo: @Model.Tipo</p>
+            <p class="text-gray-700">Login: @Model.Login</p>
+            @if (reserva is not null)
+            {
+                <div style="position:relative;width:100%;max-width:28rem;margin:0 auto">
+                <svg viewBox="0 0 440 460" role="img" aria-label="Mesa @reserva.Mesa.Nome com @lugares lugares" style="display:block;width:100%;height:auto">
+                    @if (lugares >= 3)
+                    {
+                        <polygon points="@mesaPontos" fill="#ffffff" stroke="#06793A" stroke-width="4" />
+                    }
+                    else
+                    {
+                        <rect x="130" y="184" width="180" height="72" rx="16" fill="#ffffff" stroke="#06793A" stroke-width="4" />
+                    }
+                    @Html.Raw("<text x=\"220\" y=\"224\" text-anchor=\"middle\" fill=\"#06793A\" font-size=\"16\" font-weight=\"700\">" + System.Net.WebUtility.HtmlEncode(reserva.Mesa.Nome) + "</text>")
+                    @for (var indiceAssento = 0; indiceAssento < assentos.Count; indiceAssento++)
+                    {
+                        var assento = assentos[indiceAssento];
+                        var x = assento.X.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+                        var y = assento.Y.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+                        var textoX = assento.TextoX.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+                        var textoY = assento.TextoY.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+                        var cor = assento.Ocupado ? "#06793A" : "#D9D3C7";
+                        var pessoa = assento.Ocupado ? "#ffffff" : "#8A8478";
+                        <g data-assento="@indiceAssento" transform="translate(@x,@y)">
+                            <circle data-assento-corpo r="20" fill="@cor" />
+                            @if (assento.Atual)
+                            {
+                                <circle data-assento-anel r="20" fill="none" stroke="#F28A54" stroke-width="3" />
+                            }
+                            <circle data-assento-cabeca cy="-5" r="6" fill="@pessoa" />
+                            <path data-assento-tronco d="M-11 12c1.2-7 5.2-11 11-11s9.8 4 11 11" fill="@pessoa" />
+                        </g>
+                        @Html.Raw("<text data-assento-nome=\"" + indiceAssento + "\" x=\"" + textoX + "\" y=\"" + textoY + "\" text-anchor=\"middle\" fill=\"#06793A\" font-size=\"13\" font-weight=\"700\">" + System.Net.WebUtility.HtmlEncode(assento.Nome) + "</text>")
+                    }
+                </svg>
+                @for (var indice = 0; indice < assentos.Count; indice++)
+                {
+                    var pessoa = indice < integrantes.Count ? integrantes[indice] : null;
+                    var lugar = assentos[indice];
+                    var esquerda = (lugar.TextoX / 440d * 100).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+                    var topo = (lugar.TextoY / 460d * 100).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+                    var itensPessoa = pessoa?.Itens ?? new List<MesaConsumoItem>();
+                    var atual = pessoa?.Atual == true;
+                    <div class="icones-consumo-lugar" id="@(atual ? "icones-consumo-mesa" : "icones-consumo-" + indice)" data-consumo-assento="@indice" data-consumo-atual="@(atual ? "true" : "false")" style="position:absolute;left:@esquerda%;top:@topo%;transform:translate(-50%, 0.2rem);z-index:5;display:@(itensPessoa.Count > 0 ? "block" : "none")">
+                        <div class="icones-consumo-figuras" id="@(atual ? "icones-consumo-figuras" : "icones-figuras-" + indice)" style="display:flex;justify-content:center;gap:0.25rem">
+                            @foreach (var escolhido in itensPessoa)
+                            {
+                                var chaveItem = ((escolhido.Item.Categoria ?? string.Empty) + " " + (escolhido.Item.Nome ?? string.Empty)).ToLowerInvariant();
+                                var iconeItem = chaveItem.Contains("bebida")
+                                    ? Url.Content("~/img/icones/bebida.svg")
+                                    : chaveItem.Contains("drink")
+                                        ? Url.Content("~/img/icones/drink.svg")
+                                        : chaveItem.Contains("porç") || chaveItem.Contains("porc")
+                                            ? Url.Content("~/img/icones/porcao.svg")
+                                            : Url.Content("~/img/icones/item.svg");
+                                <img src="@iconeItem" alt="@escolhido.Item.Nome" width="28" height="28" style="width:1.75rem;height:1.75rem" />
+                            }
+                        </div>
+                        <div class="icones-consumo-status" style="margin-top:0.2rem;text-align:center">
+                            @foreach (var escolhido in itensPessoa)
+                            {
+                                var entregaAssento = string.IsNullOrWhiteSpace(escolhido.Item?.StatusEntrega) ? "não entregue" : escolhido.Item.StatusEntrega;
+                                var entregueAssento = string.Equals(entregaAssento, "entregue", StringComparison.OrdinalIgnoreCase);
+                                if (entregueAssento || string.Equals(escolhido.Item?.PreparoCozinha, "sim", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    var statusAssento = entregueAssento
+                                        ? entregaAssento
+                                        : string.IsNullOrWhiteSpace(escolhido.Item?.StatusPedidoCozinha)
+                                            ? MesaConsumoStore.StatusPedidoCozinhaInicial
+                                            : escolhido.Item.StatusPedidoCozinha;
+                                    <span data-status-cozinha="@escolhido.Id" style="display:block;font-size:0.75rem;font-weight:700;color:#06793A;white-space:nowrap">@escolhido.Item?.Nome · @statusAssento</span>
+                                }
+                            }
+                        </div>
+                        <div class="icones-consumo-painel" id="@(atual ? "icones-consumo-painel" : "icones-painel-" + indice)" style="display:none;margin-top:0.35rem;width:max-content;background:#fff;border:1px solid #e2e8f0;border-radius:0.75rem;padding:0.75rem;box-shadow:0 8px 24px rgba(0,0,0,.12);white-space:nowrap">
+                            @foreach (var escolhido in itensPessoa)
+                            {
+                                <span style="display:block" data-consumo-id="@escolhido.Id" data-consumo-linha="completa">@LinhaConsumo(escolhido)</span>
+                            }
+                        </div>
+                    </div>
+                }
+                </div>
+                <p id="capacidade-mesa" class="text-lg font-semibold text-gray-900" style="text-align:center">Capacidade atual: @ocupados de @lugares</p>
+            }
+            <div class="flex flex-wrap items-center gap-4">
+                <button type="button" id="abrir-consumo" class="rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832] disabled:pointer-events-none disabled:opacity-50" @(reserva is null ? "disabled" : null) title="@(reserva is null ? "Escolha uma mesa para iniciar seu consumo" : "iniciar consumo")">iniciar consumo</button>
+                @if (reserva is null)
+                {
+                    <button type="button" class="rounded-2xl border-2 border-[#06793A] bg-white px-8 py-4 text-lg font-semibold text-[#06793A] shadow disabled:pointer-events-none disabled:opacity-50" disabled title="Escolha uma mesa para visualizar sua conta">visualizar conta</button>
+                }
+                else
+                {
+                    <a class="inline-block rounded-2xl border-2 border-[#06793A] bg-white px-8 py-4 text-lg font-semibold text-[#06793A] shadow transition hover:bg-[#06793A] hover:text-white" asp-controller="VisualizarConta" asp-action="Index">visualizar conta</a>
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(avisoMesa))
+        {
+            <p class="max-w-2xl rounded-2xl border border-gray-200 bg-white px-6 py-5 text-gray-700 shadow">@avisoMesa</p>
+        }
+
+        @if (mesas.Count == 0)
+        {
+            <p class="max-w-2xl text-sm text-gray-600">Nenhuma mesa disponível.</p>
+        }
+        else
+        {
+            <div class="relative flex w-full max-w-3xl flex-col rounded-lg border border-slate-200 bg-white shadow-sm">
+                <nav class="flex min-w-[240px] flex-col gap-1 p-1.5">
+                    @foreach (var item in mesas)
+                    {
+                        <div role="button" class="text-slate-800 flex w-full items-center rounded-md p-2 pl-3 transition-all hover:bg-[#FBF7EF] focus:bg-slate-100 active:bg-slate-100">
+                            <div class="min-w-0 flex-1">
+                                <span class="block">@item.Nome</span>
+                                <span class="block text-sm text-slate-600">Id @item.Id · @item.Tipo · Capacidade @item.Capacidade · @item.Status</span>
+                            </div>
+                            @{
+                                var reservada = string.Equals(item.Status, "reservada", StringComparison.OrdinalIgnoreCase);
+                                var ocupantesAtuais = ocupantesPorMesa.TryGetValue(item.Id, out var quantidade) ? quantidade : (reservada ? 1 : 0);
+                                var capacidadeMesa = int.TryParse(item.Capacidade, out var capacidadeInformada) ? capacidadeInformada : 0;
+                                var restantes = Math.Max(capacidadeMesa - ocupantesAtuais, 0);
+                            }
+                            <form asp-action="ReservarMesa" asp-route-id="@item.Id" method="post" class="ml-auto grid place-items-center justify-self-end">
+                                @if (reservada && restantes > 0)
+                                {
+                                    <button type="button" class="abrir-sessao-mesa" title="Abrir sessão" aria-label="Abrir sessão em @item.Nome" data-nome="@item.Nome" data-ocupantes="@ocupantesAtuais" data-restantes="@restantes" data-action="@Url.Action("AbrirSessaoMesa", new { id = item.Id })">
+                                        <img src="~/img/icones/sessao.svg" alt="" width="40" height="40" class="rounded-full" style="width:2.5rem;height:2.5rem" />
+                                    </button>
+                                }
+                                else if (reserva is null && string.Equals(item.Status, "disponivel", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <button type="submit" title="Reservar mesa" aria-label="Reservar @item.Nome">
+                                        <img src="~/img/icones/reservar-mesa.svg" alt="" width="40" height="40" class="rounded-full" style="width:2.5rem;height:2.5rem" />
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" disabled title="Sessão já aberta em uma mesa" aria-label="Reserva indisponível para @item.Nome" class="disabled:pointer-events-none disabled:opacity-50">
+                                        <img src="~/img/icones/reservar-mesa.svg" alt="" width="40" height="40" class="rounded-full" style="width:2.5rem;height:2.5rem" />
+                                    </button>
+                                }
+                            </form>
+                        </div>
+                    }
+                </nav>
+            </div>
+        }
+    }
+
+    <a class="inline-block rounded-2xl border-2 border-[#06793A] bg-white px-8 py-4 text-lg font-semibold text-[#06793A] shadow transition hover:bg-[#06793A] hover:text-white" asp-controller="Cliente" asp-action="Index">
+        Voltar
+    </a>
+</section>
+
+<div id="modal-sessao-mesa" role="presentation" style="display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:1rem">
+    <div class="space-y-6 rounded-2xl bg-white px-6 py-5 shadow" role="dialog" aria-modal="true" aria-labelledby="modal-sessao-titulo" style="width:100%;max-width:32rem">
+        <p id="modal-sessao-titulo" class="text-2xl font-extrabold tracking-tight text-gray-900"></p>
+        <p id="modal-sessao-atual" class="text-gray-700"></p>
+        <form id="form-sessao-mesa" asp-action="AbrirSessaoMesa" asp-route-id="0" method="post" class="space-y-5">
+            <div class="space-y-2">
+                <label for="ocupantes" class="block text-sm font-semibold">Número de ocupantes</label>
+                <input id="ocupantes" name="ocupantes" type="number" min="1" value="1" required class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-base text-gray-700 shadow-sm focus:border-[#06793A] focus:outline-none focus:ring-2 focus:ring-[#06793A]" />
+            </div>
+            <div class="flex gap-4">
+                <button type="submit" class="rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]">Abrir sessão</button>
+                <button type="button" id="fechar-modal-sessao" class="rounded-2xl border-2 border-[#06793A] bg-white px-8 py-4 text-lg font-semibold text-[#06793A] shadow">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modal-consumo" role="presentation" style="display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:1rem">
+    <div class="space-y-6 rounded-2xl bg-white px-6 py-5 shadow" role="dialog" aria-modal="true" aria-labelledby="modal-consumo-titulo" style="width:100%;max-width:32rem;max-height:80vh;overflow:auto">
+        <p id="modal-consumo-titulo" class="text-2xl font-extrabold tracking-tight text-gray-900">iniciar consumo</p>
+        @if (itensConsumo.Count == 0)
+        {
+            <p class="text-gray-700">não há itens de consumo cadastrado para este estabelecimento</p>
+        }
+        else
+        {
+            <div class="relative flex w-full flex-col rounded-lg border border-slate-200 bg-white shadow-sm">
+                <nav class="flex min-w-[240px] flex-col gap-1 p-1.5">
+                    @foreach (var item in itensConsumo)
+                    {
+                        <div role="button" class="item-consumo text-slate-800 flex w-full items-center rounded-md p-2 pl-3 transition-all hover:bg-[#FBF7EF] focus:bg-slate-100 active:bg-slate-100" data-item-id="@item.Id" data-item-nome="@item.Nome" style="cursor:pointer">
+                            <div class="min-w-0 flex-1">
+                                <span class="block">@item.Nome</span>
+                                <span class="block text-sm text-slate-600">Id @item.Id · @item.Categoria · @item.Preco@(string.IsNullOrWhiteSpace(item.Descricao) ? "" : " · " + item.Descricao)</span>
+                            </div>
+                            <button type="button" title="Incluir na cesta" aria-label="Incluir @item.Nome na cesta" class="ml-auto grid place-items-center justify-self-end">
+                                <img src="~/img/icones/cesta.svg" alt="" width="40" height="40" class="rounded-full" style="width:2.5rem;height:2.5rem" />
+                            </button>
+                        </div>
+                    }
+                </nav>
+            </div>
+        }
+        <div id="bloco-cesta" style="display:none">
+            <p class="text-lg font-semibold text-gray-900">Itens na cesta</p>
+            <div class="relative flex w-full flex-col rounded-lg border border-slate-200 bg-white shadow-sm">
+                <nav id="lista-cesta" class="flex min-w-[240px] flex-col gap-1 p-1.5"></nav>
+            </div>
+        </div>
+        <form id="form-consumo-token" asp-action="IncluirConsumo" asp-route-id="0" method="post" style="display:none"></form>
+        <button type="button" id="fechar-consumo" class="rounded-2xl border-2 border-[#06793A] bg-white px-8 py-4 text-lg font-semibold text-[#06793A] shadow">Fechar</button>
+    </div>
+</div>
+
+<div id="pergunta-compartilhar" role="presentation" style="display:none;position:fixed;inset:0;z-index:65;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:1rem">
+    <div class="space-y-6 rounded-2xl bg-white px-6 py-5 shadow" role="dialog" aria-modal="true" aria-labelledby="pergunta-compartilhar-texto" style="width:100%;max-width:32rem">
+        <p id="pergunta-compartilhar-texto" class="text-2xl font-extrabold tracking-tight text-gray-900">O item será compartilhado?</p>
+        <p id="pergunta-compartilhar-item" class="text-gray-700"></p>
+        <div class="flex gap-4">
+            <button type="button" id="pergunta-compartilhar-sim" class="rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]">Sim</button>
+            <button type="button" id="pergunta-compartilhar-nao" class="rounded-2xl border-2 border-[#06793A] bg-white px-8 py-4 text-lg font-semibold text-[#06793A] shadow">Não</button>
+        </div>
+    </div>
+</div>
+
+<div id="confirma-cesta" role="presentation" style="display:none;position:fixed;inset:0;z-index:60;align-items:center;justify-content:center;background:rgba(0,0,0,.45);padding:1rem">
+    <div class="space-y-6 rounded-2xl bg-white px-6 py-5 shadow" role="dialog" aria-modal="true" aria-labelledby="confirma-cesta-texto" style="width:100%;max-width:32rem">
+        <p id="confirma-cesta-texto" class="text-2xl font-extrabold tracking-tight text-gray-900"></p>
+        <p id="confirma-cesta-item" class="text-gray-700"></p>
+        <div class="flex gap-4">
+            <button type="button" id="confirma-cesta-sim" class="rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]">Sim</button>
+            <button type="button" id="confirma-cesta-nao" class="rounded-2xl border-2 border-[#06793A] bg-white px-8 py-4 text-lg font-semibold text-[#06793A] shadow">Não</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@keyframes compartilhar-entrar {
+        from { transform: translateX(-110%); }
+        to { transform: translateX(0); }
+    }
+    @@keyframes compartilhar-sair {
+        from { transform: translateX(0); }
+        to { transform: translateX(110%); }
+    }
+    @@keyframes compartilhar-recolher {
+        from { transform: translateX(0); }
+        to { transform: translateX(-110%); }
+    }
+</style>
+<div id="aviso-compartilhamento" aria-live="polite" style="display:none;position:fixed;top:0;left:0;right:0;z-index:80;overflow:hidden;pointer-events:none">
+    <div id="aviso-compartilhamento-cartao" style="pointer-events:auto;position:relative;margin:0.75rem;background:#06793A;color:#fff;border-radius:1rem;padding:1rem 2.5rem 1rem 1.25rem;box-shadow:0 8px 24px rgba(0,0,0,.2)">
+        <button type="button" id="aviso-compartilhamento-fechar" aria-label="Fechar" title="Fechar" style="position:absolute;top:0.55rem;right:0.7rem;border:0;background:transparent;color:#fff;font-size:1.5rem;font-weight:700;line-height:1;cursor:pointer">×</button>
+        <div style="display:flex;align-items:flex-start;gap:0.75rem">
+            <img id="aviso-compartilhamento-icone" alt="" width="40" height="40" style="width:2.5rem;height:2.5rem;border-radius:9999px;background:#FBF7EF;flex:none" />
+            <div style="min-width:0">
+                <p id="aviso-compartilhamento-texto" style="margin:0 0 0.75rem;font-size:1rem;line-height:1.45"></p>
+                <p style="margin:0;font-weight:700">Valor sem divisão entre os ocupantes da mesa</p>
+                <p id="aviso-compartilhamento-valor" style="margin:0.25rem 0 0;font-size:1.25rem;font-weight:700">R$ 0,00</p>
+            </div>
+        </div>
+        <label style="display:flex;align-items:center;gap:0.6rem;font-weight:700;width:max-content;margin-top:0.75rem">
+            <input id="aviso-compartilhamento-aceito" type="checkbox" style="width:1.25rem;height:1.25rem;accent-color:#FBF7EF" />
+            aceito
+        </label>
+        <label style="display:flex;align-items:center;gap:0.6rem;font-weight:700;width:max-content;margin-top:0.5rem">
+            <input id="aviso-compartilhamento-nao" type="checkbox" checked style="width:1.25rem;height:1.25rem;accent-color:#FBF7EF" />
+            não compartilhar
+        </label>
+    </div>
+    <div id="aviso-compartilhamento-ok" style="display:none;overflow:hidden;pointer-events:none">
+        <div id="aviso-compartilhamento-ok-cartao" style="margin:0 0.75rem 0.75rem;background:#06793A;color:#fff;border-radius:1rem;padding:1rem 1.25rem;box-shadow:0 8px 24px rgba(0,0,0,.2);display:flex;align-items:center;gap:0.75rem">
+            <svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true" style="width:2.5rem;height:2.5rem;flex:none">
+                <circle cx="12" cy="12" r="12" fill="#FBF7EF"></circle>
+                <path fill="#06793A" transform="translate(3.4 3.5) scale(0.72)" d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"></path>
+            </svg>
+            <p style="margin:0;font-size:1rem;line-height:1.45;font-weight:700">OK, você pode compartilhar deste item assim que ele for entregue na mesa.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        var modal = document.getElementById("modal-sessao-mesa");
+        var titulo = document.getElementById("modal-sessao-titulo");
+        var atual = document.getElementById("modal-sessao-atual");
+        var form = document.getElementById("form-sessao-mesa");
+        var input = document.getElementById("ocupantes");
+        var nomeMesa = "";
+
+        function frase(quantidade) {
+            var texto = quantidade === 1 ? " ocupante." : " ocupantes.";
+            return "Você está abrindo uma sessão na mesa " + nomeMesa + " com " + quantidade + texto;
+        }
+
+        document.querySelectorAll(".abrir-sessao-mesa").forEach(function (botao) {
+            botao.addEventListener("click", function () {
+                nomeMesa = botao.getAttribute("data-nome") || "";
+                var ocupantesAtuais = botao.getAttribute("data-ocupantes") || "0";
+                var restantes = parseInt(botao.getAttribute("data-restantes") || "1", 10);
+                form.action = botao.getAttribute("data-action") || "";
+                input.max = restantes > 0 ? restantes : 1;
+                input.value = "1";
+                atual.textContent = "Ocupantes na mesa: " + ocupantesAtuais + ".";
+                titulo.textContent = frase(1);
+                modal.style.display = "flex";
+                input.focus();
+            });
+        });
+
+        input.addEventListener("input", function () {
+            var quantidade = parseInt(input.value, 10);
+            titulo.textContent = frase(quantidade > 0 ? quantidade : 0);
+        });
+
+        document.getElementById("fechar-modal-sessao").addEventListener("click", function () {
+            modal.style.display = "none";
+        });
+
+        modal.addEventListener("click", function (evento) {
+            if (evento.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+
+        var modalConsumo = document.getElementById("modal-consumo");
+        var abrirConsumo = document.getElementById("abrir-consumo");
+        var confirma = document.getElementById("confirma-cesta");
+        var confirmaTexto = document.getElementById("confirma-cesta-texto");
+        var confirmaItem = document.getElementById("confirma-cesta-item");
+        var confirmaSim = document.getElementById("confirma-cesta-sim");
+        var pergunta = document.getElementById("pergunta-compartilhar");
+        var perguntaItem = document.getElementById("pergunta-compartilhar-item");
+        var cesta = @Html.Raw((ViewData["CestaJson"] as string) ?? "[]");
+        var acao = null;
+        var itemPendente = null;
+        var incluirUrl = "@Url.Action("IncluirConsumo", new { id = 0 })";
+        var removerUrl = "@Url.Action("RemoverConsumo", new { id = Guid.Empty })";
+        var aceitarUrl = "@Url.Action("AceitarCompartilhamento", new { id = Guid.Empty })";
+        var recusarUrl = "@Url.Action("RecusarCompartilhamento", new { id = Guid.Empty })";
+        var tokenCampo = document.querySelector("#form-consumo-token input[name='__RequestVerificationToken']");
+
+        function fecharConfirma() {
+            acao = null;
+            if (confirma) {
+                confirma.style.display = "none";
+            }
+        }
+
+        function abrirConfirma(modo, id, nome, compartilhado) {
+            acao = { modo: modo, id: id, nome: nome, compartilhado: !!compartilhado };
+            confirmaSim.style.display = "";
+            confirmaTexto.textContent = modo === "remover"
+                ? "Tem certeza que deseja remover este item da cesta?"
+                : "Tem certeza que deseja incluir este item na sua cesta de itens?";
+            confirmaItem.textContent = nome;
+            confirma.style.display = "flex";
+        }
+
+        function fecharPergunta() {
+            itemPendente = null;
+            if (pergunta) {
+                pergunta.style.display = "none";
+            }
+        }
+
+        function abrirPerguntaCompartilhar(id, nome) {
+            itemPendente = { id: id, nome: nome };
+            if (perguntaItem) {
+                perguntaItem.textContent = nome;
+            }
+            if (pergunta) {
+                pergunta.style.display = "flex";
+            }
+        }
+
+        function desenharCesta(itens) {
+            cesta = itens || [];
+            var bloco = document.getElementById("bloco-cesta");
+            var lista = document.getElementById("lista-cesta");
+            if (!bloco || !lista) {
+                return;
+            }
+
+            lista.textContent = "";
+            if (!cesta.length) {
+                bloco.style.display = "none";
+                return;
+            }
+
+            bloco.style.display = "block";
+            cesta.forEach(function (item) {
+                var linha = document.createElement("div");
+                linha.className = "text-slate-800 flex w-full items-center rounded-md p-2 pl-3";
+                var texto = document.createElement("div");
+                texto.className = "min-w-0 flex-1";
+                var nome = document.createElement("span");
+                nome.className = "block";
+                nome.textContent = item.nome;
+                var detalhe = document.createElement("span");
+                detalhe.className = "block text-sm text-slate-600";
+                detalhe.setAttribute("data-consumo-id", item.id);
+                detalhe.setAttribute("data-consumo-linha", "detalhe");
+                detalhe.textContent = detalheConsumo(item);
+                texto.appendChild(nome);
+                texto.appendChild(detalhe);
+                var botao = document.createElement("button");
+                botao.type = "button";
+                botao.className = "remover-cesta ml-auto grid place-items-center justify-self-end";
+                botao.title = "Remover da cesta";
+                botao.setAttribute("aria-label", "Remover " + item.nome + " da cesta");
+                botao.setAttribute("data-cesta-id", item.id);
+                botao.setAttribute("data-cesta-nome", item.nome);
+                botao.style.color = "#06793A";
+                botao.style.fontWeight = "700";
+                botao.textContent = "Remover";
+                linha.appendChild(texto);
+                linha.appendChild(botao);
+                lista.appendChild(linha);
+            });
+        }
+
+        function atualizarIconeCliente() {
+            var caixa = document.getElementById("cesta-cliente");
+            var painel = document.getElementById("cesta-cliente-itens");
+            if (!caixa || !painel) {
+                return;
+            }
+
+            painel.textContent = "";
+            if (!cesta.length) {
+                caixa.style.display = "none";
+                painel.style.display = "none";
+                atualizarIconesMesa();
+                return;
+            }
+
+            caixa.style.display = "inline-flex";
+            cesta.forEach(function (item) {
+                var linha = document.createElement("span");
+                linha.style.display = "block";
+                linha.setAttribute("data-consumo-id", item.id);
+                linha.setAttribute("data-consumo-linha", "completa");
+                linha.textContent = linhaConsumo(item);
+                painel.appendChild(linha);
+            });
+            atualizarIconesMesa();
+        }
+
+        function itemEntregue(item) {
+            return String(item && item.statusEntrega || "").toLowerCase() === "entregue";
+        }
+
+        function detalheConsumo(item) {
+            var linha = item.preco + " · " + item.dataHora + " · " + (item.statusEntrega || "não entregue");
+            if (!itemEntregue(item)) {
+                linha += " · " + (item.statusPedidoCozinha || "Não Iniciado");
+            }
+            return linha;
+        }
+
+        function legendaStatus(item) {
+            if (itemEntregue(item)) {
+                return (item.nome || "") + " · " + (item.statusEntrega || "entregue");
+            }
+            return (item.nome || "") + " · " + (item.statusPedidoCozinha || "Não Iniciado");
+        }
+
+        function linhaConsumo(item) {
+            return item.nome + " · " + detalheConsumo(item);
+        }
+
+        function iconeConsumo(item) {
+            var chave = ((item.categoria || "") + " " + (item.nome || "")).toLowerCase();
+            if (chave.indexOf("bebida") >= 0) {
+                return "/img/icones/bebida.svg";
+            }
+            if (chave.indexOf("drink") >= 0) {
+                return "/img/icones/drink.svg";
+            }
+            if (chave.indexOf("porç") >= 0 || chave.indexOf("porc") >= 0) {
+                return "/img/icones/porcao.svg";
+            }
+            return "/img/icones/item.svg";
+        }
+
+        function desenharConsumoAssento(caixa, itens) {
+            var figuras = caixa.querySelector(".icones-consumo-figuras");
+            var painelMesa = caixa.querySelector(".icones-consumo-painel");
+            var status = caixa.querySelector(".icones-consumo-status");
+            if (!figuras || !painelMesa || !status) {
+                return;
+            }
+
+            var painelAberto = painelMesa.style.display === "block";
+            figuras.textContent = "";
+            painelMesa.textContent = "";
+            status.textContent = "";
+            if (!itens || !itens.length) {
+                caixa.style.display = "none";
+                painelMesa.style.display = "none";
+                return;
+            }
+
+            caixa.style.display = "block";
+            itens.forEach(function (item) {
+                var imagem = document.createElement("img");
+                imagem.src = iconeConsumo(item);
+                imagem.alt = item.nome || "";
+                imagem.width = 28;
+                imagem.height = 28;
+                imagem.style.width = "1.75rem";
+                imagem.style.height = "1.75rem";
+                figuras.appendChild(imagem);
+                var linha = document.createElement("span");
+                linha.style.display = "block";
+                linha.setAttribute("data-consumo-id", item.id);
+                linha.setAttribute("data-consumo-linha", "completa");
+                linha.textContent = linhaConsumo(item);
+                painelMesa.appendChild(linha);
+                if (itemEntregue(item) || (item.preparoCozinha || "").toLowerCase() === "sim") {
+                    var legenda = document.createElement("span");
+                    legenda.setAttribute("data-status-cozinha", item.id);
+                    legenda.style.display = "block";
+                    legenda.style.fontSize = "0.75rem";
+                    legenda.style.fontWeight = "700";
+                    legenda.style.color = "#06793A";
+                    legenda.style.whiteSpace = "nowrap";
+                    legenda.textContent = legendaStatus(item);
+                    status.appendChild(legenda);
+                }
+            });
+            painelMesa.style.display = painelAberto ? "block" : "none";
+        }
+
+        function atualizarIconesMesa() {
+            var caixa = document.querySelector('.icones-consumo-lugar[data-consumo-atual="true"]');
+            if (!caixa) {
+                return;
+            }
+
+            desenharConsumoAssento(caixa, cesta);
+        }
+
+        function fecharConsumo() {
+            if (modalConsumo) {
+                modalConsumo.style.display = "none";
+            }
+            atualizarIconeCliente();
+        }
+
+        function enviar(url, campos) {
+            var opcoes = {
+                method: "POST",
+                headers: { "RequestVerificationToken": tokenCampo ? tokenCampo.value : "" }
+            };
+            if (campos) {
+                var dados = new FormData();
+                Object.keys(campos).forEach(function (chave) {
+                    dados.append(chave, campos[chave]);
+                });
+                opcoes.body = dados;
+            }
+            return fetch(url, opcoes).then(function (resposta) {
+                return resposta.json();
+            });
+        }
+
+        desenharCesta(cesta);
+
+        if (modalConsumo && abrirConsumo) {
+            abrirConsumo.addEventListener("click", function () {
+                modalConsumo.style.display = "flex";
+            });
+            document.getElementById("fechar-consumo").addEventListener("click", fecharConsumo);
+            modalConsumo.addEventListener("click", function (evento) {
+                if (evento.target === modalConsumo) {
+                    fecharConsumo();
+                }
+            });
+            modalConsumo.addEventListener("click", function (evento) {
+                var item = evento.target.closest(".item-consumo");
+                if (item && modalConsumo.contains(item)) {
+                    abrirPerguntaCompartilhar(item.getAttribute("data-item-id"), item.getAttribute("data-item-nome") || "");
+                    return;
+                }
+
+                var remover = evento.target.closest(".remover-cesta");
+                if (remover && modalConsumo.contains(remover)) {
+                    abrirConfirma("remover", remover.getAttribute("data-cesta-id"), remover.getAttribute("data-cesta-nome") || "");
+                }
+            });
+        }
+
+        document.querySelectorAll(".icones-consumo-lugar").forEach(function (caixa) {
+            var painelMesa = caixa.querySelector(".icones-consumo-painel");
+            caixa.addEventListener("mouseenter", function () {
+                if (painelMesa && painelMesa.childElementCount) {
+                    painelMesa.style.display = "block";
+                }
+            });
+            caixa.addEventListener("mouseleave", function () {
+                if (painelMesa) {
+                    painelMesa.style.display = "none";
+                }
+            });
+        });
+
+        var iconeCliente = document.getElementById("cesta-cliente");
+        if (iconeCliente) {
+            var painelCliente = document.getElementById("cesta-cliente-itens");
+            iconeCliente.addEventListener("mouseenter", function () {
+                if (cesta.length) {
+                    painelCliente.style.display = "block";
+                }
+            });
+            iconeCliente.addEventListener("mouseleave", function () {
+                painelCliente.style.display = "none";
+            });
+        }
+
+        if (pergunta) {
+            document.getElementById("pergunta-compartilhar-sim").addEventListener("click", function () {
+                if (!itemPendente) {
+                    return;
+                }
+                var id = itemPendente.id;
+                var nome = itemPendente.nome;
+                fecharPergunta();
+                abrirConfirma("incluir", id, nome, true);
+            });
+            document.getElementById("pergunta-compartilhar-nao").addEventListener("click", function () {
+                if (!itemPendente) {
+                    return;
+                }
+                var id = itemPendente.id;
+                var nome = itemPendente.nome;
+                fecharPergunta();
+                abrirConfirma("incluir", id, nome, false);
+            });
+            pergunta.addEventListener("click", function (evento) {
+                if (evento.target === pergunta) {
+                    fecharPergunta();
+                }
+            });
+        }
+
+        var avisoCompartilhamento = document.getElementById("aviso-compartilhamento");
+        var avisoCartao = document.getElementById("aviso-compartilhamento-cartao");
+        var avisoTexto = document.getElementById("aviso-compartilhamento-texto");
+        var avisoIcone = document.getElementById("aviso-compartilhamento-icone");
+        var avisoValor = document.getElementById("aviso-compartilhamento-valor");
+        var avisoAceito = document.getElementById("aviso-compartilhamento-aceito");
+        var avisoNao = document.getElementById("aviso-compartilhamento-nao");
+        var avisoFechar = document.getElementById("aviso-compartilhamento-fechar");
+        var avisoOk = document.getElementById("aviso-compartilhamento-ok");
+        var avisoOkCartao = document.getElementById("aviso-compartilhamento-ok-cartao");
+        var compartilhamentoVisivel = "";
+        var avisoFechando = false;
+        var avisoConfirmando = false;
+        var avisosFechados = {};
+
+        function esconderConfirmacao() {
+            if (avisoOk) {
+                avisoOk.style.display = "none";
+            }
+            if (avisoOkCartao) {
+                avisoOkCartao.style.animation = "";
+            }
+        }
+
+        function esconderCompartilhamento() {
+            compartilhamentoVisivel = "";
+            esconderConfirmacao();
+            if (avisoCompartilhamento) {
+                avisoCompartilhamento.style.display = "none";
+            }
+            if (avisoCartao) {
+                avisoCartao.style.animation = "";
+            }
+        }
+
+        function mostrarCompartilhamento(oferta) {
+            if (!avisoCompartilhamento || !avisoCartao || !avisoTexto || !avisoAceito) {
+                return;
+            }
+            compartilhamentoVisivel = String(oferta.id);
+            var dadosItem = "";
+            if (oferta.nomeItem) {
+                dadosItem += " Nome: " + oferta.nomeItem + ".";
+            }
+            if (oferta.descricao) {
+                dadosItem += " Descrição: " + oferta.descricao + ".";
+            }
+            var mensagem = oferta.mensagem || "";
+            if (dadosItem && mensagem.indexOf(" Nome: ") < 0) {
+                mensagem += dadosItem;
+            }
+            avisoTexto.textContent = mensagem;
+            if (avisoIcone) {
+                avisoIcone.src = iconeConsumo({ categoria: oferta.categoria, nome: oferta.nomeItem });
+                avisoIcone.alt = oferta.nomeItem || "";
+            }
+            if (avisoValor) {
+                avisoValor.textContent = oferta.preco || "R$ 0,00";
+            }
+            avisoAceito.checked = false;
+            avisoAceito.disabled = false;
+            avisoAceito.setAttribute("data-id", compartilhamentoVisivel);
+            if (avisoNao) {
+                avisoNao.checked = true;
+                avisoNao.disabled = false;
+            }
+            esconderConfirmacao();
+            avisoCartao.style.animation = "none";
+            avisoCompartilhamento.style.display = "block";
+            void avisoCartao.offsetWidth;
+            avisoCartao.style.animation = "compartilhar-entrar 0.9s ease-out forwards";
+        }
+
+        function aplicarCompartilhamento(lista) {
+            if (avisoConfirmando) {
+                return;
+            }
+            var oferta = null;
+            if (Array.isArray(lista)) {
+                for (var i = 0; i < lista.length; i++) {
+                    if (lista[i] && !avisosFechados[String(lista[i].id)]) {
+                        oferta = lista[i];
+                        break;
+                    }
+                }
+            }
+            if (!oferta) {
+                if (!avisoFechando) {
+                    esconderCompartilhamento();
+                }
+                return;
+            }
+            if (compartilhamentoVisivel === String(oferta.id)) {
+                return;
+            }
+            mostrarCompartilhamento(oferta);
+        }
+
+        function fecharAvisoCompartilhamento() {
+            if (!avisoCartao || !compartilhamentoVisivel || avisoFechando) {
+                return;
+            }
+            var id = compartilhamentoVisivel;
+            avisosFechados[id] = true;
+            avisoFechando = true;
+            avisoCartao.style.animation = "compartilhar-sair 0.7s ease-in forwards";
+            window.setTimeout(function () {
+                avisoFechando = false;
+                if (compartilhamentoVisivel === id) {
+                    esconderCompartilhamento();
+                }
+            }, 700);
+        }
+
+        if (avisoFechar) {
+            avisoFechar.addEventListener("click", fecharAvisoCompartilhamento);
+        }
+
+        function mostrarConfirmacao() {
+            if (!avisoOk || !avisoOkCartao) {
+                return;
+            }
+            avisoOkCartao.style.animation = "none";
+            avisoOkCartao.style.transform = "translateX(-110%)";
+            avisoOk.style.display = "block";
+            void avisoOkCartao.offsetWidth;
+            avisoOkCartao.style.animation = "compartilhar-entrar 0.9s ease-out forwards";
+        }
+
+        function recolherAvisosCompartilhamento() {
+            var id = compartilhamentoVisivel;
+            if (avisoCartao) {
+                avisoCartao.style.animation = "compartilhar-recolher 0.7s ease-in forwards";
+            }
+            if (avisoOkCartao) {
+                avisoOkCartao.style.animation = "compartilhar-recolher 0.7s ease-in forwards";
+            }
+            window.setTimeout(function () {
+                avisoFechando = false;
+                avisoConfirmando = false;
+                if (compartilhamentoVisivel === id) {
+                    esconderCompartilhamento();
+                }
+            }, 700);
+        }
+
+        function concluirCompartilhamento(url, positivo) {
+            if (!compartilhamentoVisivel) {
+                return;
+            }
+            var id = compartilhamentoVisivel;
+            if (avisoAceito) {
+                avisoAceito.disabled = true;
+            }
+            if (avisoNao) {
+                avisoNao.disabled = true;
+            }
+            enviar(url.replace("00000000-0000-0000-0000-000000000000", id)).then(function (resposta) {
+                if (!resposta || !resposta.ok) {
+                    if (avisoAceito) {
+                        avisoAceito.disabled = false;
+                        avisoAceito.checked = false;
+                    }
+                    if (avisoNao) {
+                        avisoNao.disabled = false;
+                        avisoNao.checked = true;
+                    }
+                    return;
+                }
+                if (positivo) {
+                    avisosFechados[id] = true;
+                    avisoFechando = true;
+                    avisoConfirmando = true;
+                    mostrarConfirmacao();
+                    window.setTimeout(recolherAvisosCompartilhamento, 3000);
+                    return;
+                }
+                if (avisoCartao) {
+                    avisoCartao.style.animation = "compartilhar-sair 0.7s ease-in forwards";
+                }
+                window.setTimeout(function () {
+                    location.reload();
+                }, 700);
+            }).catch(function () {
+                if (avisoAceito) {
+                    avisoAceito.disabled = false;
+                    avisoAceito.checked = false;
+                }
+                if (avisoNao) {
+                    avisoNao.disabled = false;
+                    avisoNao.checked = true;
+                }
+            });
+        }
+
+        if (avisoAceito) {
+            avisoAceito.addEventListener("change", function () {
+                if (!avisoAceito.checked || !compartilhamentoVisivel) {
+                    avisoAceito.checked = false;
+                    if (avisoNao) {
+                        avisoNao.checked = true;
+                    }
+                    return;
+                }
+                if (avisoNao) {
+                    avisoNao.checked = false;
+                }
+                concluirCompartilhamento(aceitarUrl, true);
+            });
+        }
+
+        if (avisoNao) {
+            avisoNao.addEventListener("click", function (evento) {
+                if (!avisoNao.checked || !compartilhamentoVisivel) {
+                    return;
+                }
+                evento.preventDefault();
+                if (avisoAceito) {
+                    avisoAceito.checked = false;
+                }
+                concluirCompartilhamento(recusarUrl);
+            });
+            avisoNao.addEventListener("change", function () {
+                if (!avisoNao.checked || !compartilhamentoVisivel) {
+                    return;
+                }
+                if (avisoAceito) {
+                    avisoAceito.checked = false;
+                }
+                concluirCompartilhamento(recusarUrl);
+            });
+        }
+
+        if (confirma && confirmaSim) {
+            document.getElementById("confirma-cesta-nao").addEventListener("click", fecharConfirma);
+            confirma.addEventListener("click", function (evento) {
+                if (evento.target === confirma) {
+                    fecharConfirma();
+                }
+            });
+            confirmaSim.addEventListener("click", function () {
+                if (!acao) {
+                    return;
+                }
+
+                var url = acao.modo === "remover"
+                    ? removerUrl.replace("00000000-0000-0000-0000-000000000000", acao.id)
+                    : incluirUrl.replace(/\/0$/, "/" + acao.id);
+                var campos = acao.modo === "incluir"
+                    ? { compartilhado: acao.compartilhado ? "sim" : "não" }
+                    : null;
+                confirmaSim.disabled = true;
+                enviar(url, campos).then(function (resposta) {
+                    confirmaSim.disabled = false;
+                    if (!resposta || !resposta.ok) {
+                        confirmaTexto.textContent = resposta && resposta.mensagem ? resposta.mensagem : "Não foi possível atualizar a cesta.";
+                        confirmaSim.style.display = "none";
+                        return;
+                    }
+
+                    desenharCesta(resposta.itens || []);
+                    if (acao.modo === "incluir" && acao.compartilhado) {
+                        location.reload();
+                        return;
+                    }
+                    fecharConfirma();
+                }).catch(function () {
+                    confirmaSim.disabled = false;
+                    confirmaTexto.textContent = "Não foi possível atualizar a cesta.";
+                    confirmaSim.style.display = "none";
+                });
+            });
+        }
+
+        function aplicarStatusCozinha(itens) {
+            if (!Array.isArray(itens)) {
+                return;
+            }
+
+            var porId = {};
+            itens.forEach(function (item) {
+                porId[String(item.id)] = item;
+            });
+            if (Array.isArray(cesta)) {
+                cesta.forEach(function (atual) {
+                    var item = porId[String(atual.id)];
+                    if (!item) {
+                        return;
+                    }
+                    atual.statusPedidoCozinha = item.statusPedidoCozinha;
+                    atual.preparoCozinha = item.preparoCozinha;
+                    atual.statusEntrega = item.statusEntrega;
+                });
+            }
+
+            var painelCliente = document.getElementById("cesta-cliente-itens");
+            if (painelCliente && Array.isArray(cesta) && cesta.length) {
+                var aberto = painelCliente.style.display === "block";
+                painelCliente.textContent = "";
+                cesta.forEach(function (item) {
+                    var linha = document.createElement("span");
+                    linha.style.display = "block";
+                    linha.setAttribute("data-consumo-id", item.id);
+                    linha.setAttribute("data-consumo-linha", "completa");
+                    linha.textContent = linhaConsumo(item);
+                    painelCliente.appendChild(linha);
+                });
+                painelCliente.style.display = aberto ? "block" : "none";
+            }
+
+            Object.keys(porId).forEach(function (id) {
+                var item = porId[id];
+                document.querySelectorAll('[data-consumo-id="' + id + '"]').forEach(function (linha) {
+                    linha.textContent = linha.getAttribute("data-consumo-linha") === "detalhe"
+                        ? detalheConsumo(item)
+                        : linhaConsumo(item);
+                });
+                document.querySelectorAll('[data-status-cozinha="' + id + '"]').forEach(function (legenda) {
+                    legenda.textContent = legendaStatus(item);
+                });
+            });
+        }
+
+        var consumoConhecido = "";
+
+        function atualizarConsumoMesa(lista) {
+            if (!Array.isArray(lista)) {
+                return;
+            }
+
+            var assinatura = lista.map(function (assento) {
+                var itens = assento.itens || [];
+                return itens.map(function (item) {
+                    return String(item.id) + ":" + (item.statusPedidoCozinha || "") + ":" + (item.statusEntrega || "") + ":" + (item.preparoCozinha || "");
+                }).join(",");
+            }).join("|");
+            if (assinatura === consumoConhecido) {
+                return;
+            }
+            consumoConhecido = assinatura;
+
+            lista.forEach(function (assento, indice) {
+                var caixa = document.querySelector('[data-consumo-assento="' + indice + '"]');
+                if (!caixa) {
+                    return;
+                }
+                desenharConsumoAssento(caixa, assento.itens || []);
+            });
+        }
+
+        var assentosConhecidos = "";
+
+        function atualizarAssentos(lista) {
+            if (!Array.isArray(lista) || !lista.length) {
+                return;
+            }
+
+            var assinatura = lista.map(function (assento) {
+                return (assento.nome || "") + (assento.atual ? "*" : "") + (assento.ocupado ? "1" : "0");
+            }).join("|");
+            if (assinatura === assentosConhecidos) {
+                return;
+            }
+            assentosConhecidos = assinatura;
+
+            lista.forEach(function (assento, indice) {
+                var grupo = document.querySelector('[data-assento="' + indice + '"]');
+                if (!grupo) {
+                    return;
+                }
+
+                var ocupado = !!assento.ocupado;
+                var cor = ocupado ? "#06793A" : "#D9D3C7";
+                var pessoa = ocupado ? "#ffffff" : "#8A8478";
+                var corpo = grupo.querySelector("[data-assento-corpo]");
+                var cabeca = grupo.querySelector("[data-assento-cabeca]");
+                var tronco = grupo.querySelector("[data-assento-tronco]");
+                if (corpo) {
+                    corpo.setAttribute("fill", cor);
+                }
+                if (cabeca) {
+                    cabeca.setAttribute("fill", pessoa);
+                }
+                if (tronco) {
+                    tronco.setAttribute("fill", pessoa);
+                }
+
+                var anel = grupo.querySelector("[data-assento-anel]");
+                if (assento.atual) {
+                    if (!anel) {
+                        anel = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                        anel.setAttribute("data-assento-anel", "");
+                        anel.setAttribute("r", "20");
+                        anel.setAttribute("fill", "none");
+                        anel.setAttribute("stroke", "#F28A54");
+                        anel.setAttribute("stroke-width", "3");
+                        if (corpo && corpo.nextSibling) {
+                            grupo.insertBefore(anel, corpo.nextSibling);
+                        } else {
+                            grupo.appendChild(anel);
+                        }
+                    }
+                } else if (anel) {
+                    anel.remove();
+                }
+
+                var nome = document.querySelector('[data-assento-nome="' + indice + '"]');
+                if (nome) {
+                    nome.textContent = assento.nome || "";
+                }
+            });
+
+            var capacidade = document.getElementById("capacidade-mesa");
+            if (capacidade) {
+                var ocupados = lista.filter(function (assento) { return assento.ocupado; }).length;
+                capacidade.textContent = "Capacidade atual: " + ocupados + " de " + lista.length;
+            }
+        }
+
+        var entreguesConhecidos = @Html.Raw(ViewData["EntreguesConhecidos"] as string ?? "[]");
+        if (!Array.isArray(entreguesConhecidos)) {
+            entreguesConhecidos = [];
+        }
+        function observarConsumo() {
+            var consumoAberto = document.getElementById("modal-consumo");
+            var confirmaAberta = document.getElementById("confirma-cesta");
+            var perguntaAberta = document.getElementById("pergunta-compartilhar");
+            var mesaAberta = document.getElementById("modal-sessao-mesa");
+            var modalAberto = (consumoAberto && consumoAberto.style.display === "flex")
+                || (confirmaAberta && confirmaAberta.style.display === "flex")
+                || (perguntaAberta && perguntaAberta.style.display === "flex")
+                || (mesaAberta && mesaAberta.style.display === "flex");
+
+            fetch("@Url.Action("NotificacaoConsumo")")
+                .then(function (resposta) { return resposta.json(); })
+                .then(function (dados) {
+                    aplicarStatusCozinha(dados && dados.itens);
+                    atualizarAssentos(dados && dados.assentos);
+                    atualizarConsumoMesa(dados && dados.assentos);
+                    aplicarCompartilhamento(dados && dados.compartilhamentos);
+                    if (modalAberto || avisoConfirmando) {
+                        return;
+                    }
+                    var atuais = dados && Array.isArray(dados.entregues) ? dados.entregues : [];
+                    var novo = atuais.some(function (id) {
+                        return entreguesConhecidos.indexOf(id) === -1;
+                    });
+                    if (novo) {
+                        location.reload();
+                    }
+                })
+                .catch(function () { });
+        }
+
+        observarConsumo();
+        setInterval(observarConsumo, 3000);
+    })();
+</script>

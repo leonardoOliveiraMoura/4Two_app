@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Voucher-Ticket">
+  <rect width="128" height="128" rx="64" fill="#06793A"/>
+  <rect x="28" y="46" width="72" height="36" rx="8" fill="#fff"/>
+  <circle cx="28" cy="64" r="8" fill="#06793A"/>
+  <circle cx="100" cy="64" r="8" fill="#06793A"/>
+  <rect x="38" y="58" width="16" height="4" rx="2" fill="#06793A"/>
+  <rect x="38" y="66" width="12" height="4" rx="2" fill="#F28A54"/>
+  <path d="M64 54v16" fill="none" stroke="#F28A54" stroke-width="3" stroke-dasharray="4 4" stroke-linecap="round"/>
+</svg>

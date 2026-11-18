@@ -1,0 +1,41 @@
+@model MesaConsumoItem
+@{
+    var mesa = Model.SessaoMesaCliente?.Mesa?.Nome ?? "Mesa";
+    var cliente = Model.SessaoMesaCliente?.Cliente?.Nome;
+    if (string.IsNullOrWhiteSpace(cliente))
+    {
+        cliente = Model.SessaoMesaCliente?.Cliente?.Login ?? "Cliente";
+    }
+    var status = Model.Item.StatusPedidoCozinha ?? string.Empty;
+    var entrega = string.IsNullOrWhiteSpace(Model.Item.StatusEntrega) ? "não entregue" : Model.Item.StatusEntrega;
+    var iniciado = string.Equals(status, "Iniciado em preparo", StringComparison.OrdinalIgnoreCase);
+    var preparado = string.Equals(status, "Preparado aguardando entrega", StringComparison.OrdinalIgnoreCase);
+    var entregue = string.Equals(entrega, "entregue", StringComparison.OrdinalIgnoreCase);
+}
+<div class="text-slate-800 flex w-full items-center rounded-md p-2 pl-3 transition-all hover:bg-[#FBF7EF]">
+    <div class="min-w-0 flex-1">
+        <span class="block">@Model.Item.Nome</span>
+        <span class="block text-sm text-slate-600">@mesa · @cliente · @Model.Item.Preco · @Model.Item.DataHora.ToString("dd/MM/yyyy HH:mm") · @entrega · @status</span>
+    </div>
+    <form method="post" action="/pedidosCozinha/status" style="display:flex;align-items:center;gap:0.35rem;margin-left:0.75rem">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <input type="hidden" name="statusPedidoCozinha" value="Não Iniciado" />
+        <input type="checkbox" @(iniciado ? "checked" : null) onclick="this.form.elements.statusPedidoCozinha.value = this.checked ? 'Iniciado em preparo' : 'Não Iniciado'; this.form.submit();" title="Iniciado em preparo" aria-label="Iniciado em preparo de @Model.Item.Nome" style="width:1.25rem;height:1.25rem;accent-color:#06793A" />
+        <span class="text-sm text-slate-600">Iniciado em preparo</span>
+    </form>
+    <form method="post" action="/pedidosCozinha/status" style="display:flex;align-items:center;gap:0.35rem;margin-left:0.75rem">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <input type="hidden" name="statusPedidoCozinha" value="Não Iniciado" />
+        <input type="checkbox" @(preparado ? "checked" : null) onclick="this.form.elements.statusPedidoCozinha.value = this.checked ? 'Preparado aguardando entrega' : 'Não Iniciado'; this.form.submit();" title="Preparado aguardando entrega" aria-label="Preparado aguardando entrega de @Model.Item.Nome" style="width:1.25rem;height:1.25rem;accent-color:#06793A" />
+        <span class="text-sm text-slate-600">Preparado aguardando entrega</span>
+    </form>
+    <form method="post" action="/pedidosCozinha/entrega" style="display:flex;align-items:center;gap:0.35rem;margin-left:0.75rem">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <input type="hidden" name="statusEntrega" value="não entregue" />
+        <input type="checkbox" @(entregue ? "checked" : null) onclick="this.form.elements.statusEntrega.value = this.checked ? 'entregue' : 'não entregue'; this.form.submit();" title="Entregue" aria-label="Entregue de @Model.Item.Nome" style="width:1.25rem;height:1.25rem;accent-color:#06793A" />
+        <span class="text-sm text-slate-600">Entregue</span>
+    </form>
+</div>

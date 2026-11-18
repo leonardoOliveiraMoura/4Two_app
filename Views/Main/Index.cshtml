@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "Main";
+}
+
+<section class="space-y-6 py-10">
+    <img
+        class="h-36 w-36 rounded-3xl object-cover shadow-lg"
+        src="~/src/img/4two.jpg"
+        alt="Logotipo 4two" />
+    <!--<p class="text-sm font-semibold uppercase tracking-widest text-blue-600">C4Two</p>-->
+    <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 md:text-6xl">
+        4two
+    </h1>
+    <p class="max-w-2xl text-lg text-gray-600">
+        4two experiência do usuário desde a entrada na mesa até o pagamento. Organizador de consumos individuais e compartilhados dentro da mesma mesa. Gestão de Itens de consumo e pagamentos de pedidos.
+    </p>
+    <div class="flex flex-wrap gap-4">
+        <a class="inline-block rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]" asp-controller="LoginGerenciamento" asp-action="Index">
+            Gerenciamento
+        </a>
+        <a class="inline-block rounded-2xl border-2 border-[#06793A] bg-white px-8 py-4 text-lg font-semibold text-[#06793A] shadow transition hover:bg-[#06793A] hover:text-white" asp-controller="LoginClientes" asp-action="Index">
+            Cliente
+        </a>
+    </div>
+</section>

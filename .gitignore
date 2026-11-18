@@ -1,0 +1,17 @@
+bin/
+obj/
+out/
+node_modules/
+
+.vs/
+.vscode/
+*.user
+*.suo
+
+agent-transcripts/
+terminals/
+mcps/
+canvases/
+
+Thumbs.db
+.DS_Store

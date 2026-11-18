@@ -1,0 +1,22 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Login Gerenciamento";
+    ViewData["SubmitClass"] = "w-full rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]";
+}
+
+<section class="space-y-6 py-10">
+    <img
+        class="h-36 w-36 rounded-3xl object-cover shadow-lg"
+        src="~/src/img/4two.jpg"
+        alt="Logotipo 4two" />
+    <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 md:text-6xl">
+        Login Gerenciamento
+    </h1>
+    <p class="max-w-2xl text-lg text-gray-600">
+        Acesso à área de gerenciamento.
+    </p>
+    <partial name="_LoginForm" model="Model" />
+    <a class="inline-block rounded-2xl border-2 border-[#06793A] bg-white px-8 py-4 text-lg font-semibold text-[#06793A] shadow transition hover:bg-[#06793A] hover:text-white" asp-controller="Main" asp-action="Index">
+        Voltar
+    </a>
+</section>

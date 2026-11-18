@@ -1,0 +1,171 @@
+@model CadCliente
+@{
+    ViewData["Title"] = "Cliente";
+    var fieldClass = "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-base text-gray-700 shadow-sm focus:border-[#06793A] focus:outline-none focus:ring-2 focus:ring-[#06793A]";
+    var formularioOculto = ViewData.ModelState.IsValid;
+    var estabelecimentos = ViewData["Estabelecimentos"] as List<EstabelecimentoItem> ?? new List<EstabelecimentoItem>();
+}
+
+<section class="space-y-6 py-10">
+    <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 md:text-6xl">
+        Cliente
+    </h1>
+    <p class="max-w-2xl text-lg text-gray-600">
+        Área do cliente para acompanhar a mesa, os consumos e o pagamento.
+    </p>
+
+    @if (ViewData["Sucesso"] is string sucesso)
+    {
+        <p class="profile-saved">@sucesso</p>
+    }
+
+    <div class="flex flex-col items-start gap-8 md:flex-row">
+        <div class="flex flex-col items-center gap-3">
+            <div class="flex items-center gap-4">
+                <img
+                    class="h-36 w-36 rounded-full object-cover shadow-lg"
+                    src="~/img/perfil.svg"
+                    alt="Perfil" />
+                <button type="button" id="editar-perfil" title="Editar" aria-label="Editar perfil">
+                    <img src="~/img/icones/editar.svg" alt="" width="40" height="40" class="rounded-full" style="width:2.5rem;height:2.5rem" />
+                </button>
+            </div>
+            <p class="text-sm font-semibold">Perfil</p>
+        </div>
+
+        <div class="flex flex-col items-center gap-3">
+            <button type="button" id="abrir-estabelecimentos" title="Estabelecimentos" aria-label="Estabelecimentos">
+                <img
+                    class="h-36 w-36 rounded-full object-cover shadow-lg"
+                    src="~/img/icones/estabelecimento.svg"
+                    alt="Estabelecimentos" />
+            </button>
+            <p class="text-sm font-semibold">Estabelecimentos</p>
+        </div>
+
+        <form id="form-perfil" asp-action="Index" method="post" class="w-full max-w-3xl space-y-5" style="@(formularioOculto ? "display:none" : null)">
+            <div asp-validation-summary="ModelOnly"></div>
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div class="space-y-2">
+                    <label asp-for="Login" class="block text-sm font-semibold"></label>
+                    <input asp-for="Login" class="@fieldClass" />
+                    <span asp-validation-for="Login"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="Senha" class="block text-sm font-semibold"></label>
+                    <input asp-for="Senha" class="@fieldClass" />
+                    <span asp-validation-for="Senha"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="Id" class="block text-sm font-semibold"></label>
+                    <input asp-for="Id" class="@fieldClass" />
+                    <span asp-validation-for="Id"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="Cpf" class="block text-sm font-semibold"></label>
+                    <input asp-for="Cpf" class="@fieldClass" />
+                    <span asp-validation-for="Cpf"></span>
+                </div>
+                <div class="space-y-2 md:col-span-2">
+                    <label asp-for="Nome" class="block text-sm font-semibold"></label>
+                    <input asp-for="Nome" class="@fieldClass" />
+                    <span asp-validation-for="Nome"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="Email" class="block text-sm font-semibold"></label>
+                    <input asp-for="Email" class="@fieldClass" />
+                    <span asp-validation-for="Email"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="Telefone" class="block text-sm font-semibold"></label>
+                    <input asp-for="Telefone" class="@fieldClass" />
+                    <span asp-validation-for="Telefone"></span>
+                </div>
+                <div class="space-y-2 md:col-span-2">
+                    <label asp-for="Endereco" class="block text-sm font-semibold"></label>
+                    <input asp-for="Endereco" class="@fieldClass" />
+                    <span asp-validation-for="Endereco"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="Cidade" class="block text-sm font-semibold"></label>
+                    <input asp-for="Cidade" class="@fieldClass" />
+                    <span asp-validation-for="Cidade"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="Estado" class="block text-sm font-semibold"></label>
+                    <input asp-for="Estado" class="@fieldClass" />
+                    <span asp-validation-for="Estado"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="Cep" class="block text-sm font-semibold"></label>
+                    <input asp-for="Cep" class="@fieldClass" />
+                    <span asp-validation-for="Cep"></span>
+                </div>
+                <div class="space-y-2">
+                    <label asp-for="Pais" class="block text-sm font-semibold"></label>
+                    <input asp-for="Pais" class="@fieldClass" />
+                    <span asp-validation-for="Pais"></span>
+                </div>
+            </div>
+            <button type="submit" class="rounded-2xl bg-[#06793A] px-8 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-[#056832]">
+                Salvar
+            </button>
+        </form>
+
+        <div id="lista-estabelecimentos" class="w-full max-w-3xl" style="display:none">
+            @if (estabelecimentos.Count == 0)
+            {
+                <p class="text-sm text-gray-600">Nenhum estabelecimento cadastrado.</p>
+            }
+            else
+            {
+                <div class="relative flex flex-col rounded-lg bg-white shadow-sm border border-slate-200">
+                    <nav class="flex min-w-[240px] flex-col gap-1 p-1.5">
+                        @foreach (var item in estabelecimentos)
+                        {
+                            <div role="button" class="text-slate-800 flex w-full items-center rounded-md p-2 pl-3 transition-all hover:bg-[#FBF7EF] focus:bg-slate-100 active:bg-slate-100">
+                                <div class="min-w-0 flex-1">
+                                    <span class="block">@item.Nome</span>
+                                    <span class="block text-sm text-slate-600">Id @item.Id · @item.Tipo · @item.Telefone · @item.Endereco · @item.Cidade</span>
+                                </div>
+                                <form asp-action="AbrirSessaoEstabelecimento" asp-route-id="@item.Id" method="post" class="ml-auto grid place-items-center justify-self-end">
+                                    <button type="submit" title="Abrir sessão" aria-label="Abrir sessão em @item.Nome">
+                                        <img src="~/img/icones/sessao.svg" alt="" width="40" height="40" class="rounded-full" style="width:2.5rem;height:2.5rem" />
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    </nav>
+                </div>
+            }
+        </div>
+    </div>
+
+    <a class="inline-block rounded-2xl border-2 border-[#06793A] bg-white px-8 py-4 text-lg font-semibold text-[#06793A] shadow transition hover:bg-[#06793A] hover:text-white" asp-controller="Main" asp-action="Index">
+        Voltar
+    </a>
+</section>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<partial name="_ValidationScriptsPartial" />
+<script>
+    document.getElementById("editar-perfil").addEventListener("click", function () {
+        var formulario = document.getElementById("form-perfil");
+        var lista = document.getElementById("lista-estabelecimentos");
+        var abrindo = formulario.style.display === "none";
+        formulario.style.display = abrindo ? "" : "none";
+        if (abrindo) {
+            lista.style.display = "none";
+        }
+    });
+
+    document.getElementById("abrir-estabelecimentos").addEventListener("click", function () {
+        var lista = document.getElementById("lista-estabelecimentos");
+        var formulario = document.getElementById("form-perfil");
+        var abrindo = lista.style.display === "none";
+        lista.style.display = abrindo ? "" : "none";
+        if (abrindo) {
+            formulario.style.display = "none";
+        }
+    });
+</script>

@@ -1,0 +1,14 @@
+[
+  {
+    "login": "cliente",
+    "senha": "cliente123"
+  },
+  {
+    "login": "cliente2",
+    "senha": "cliente244"
+  },
+  {
+    "login": "cliente3",
+    "senha": "cliente3"
+  }
+]

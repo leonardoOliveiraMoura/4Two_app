@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Pizzaria">
+  <rect width="128" height="128" rx="64" fill="#06793A"/>
+  <path fill="#fff" d="M64 22 108 102H20z"/>
+  <circle cx="58" cy="72" r="7" fill="#06793A"/>
+  <circle cx="78" cy="82" r="6" fill="#06793A"/>
+  <circle cx="62" cy="90" r="5" fill="#06793A"/>
+</svg>
